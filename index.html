@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Image Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0a11;
+    --surface:#15111d;
+    --surface-2:#1d1828;
+    --field:#120e1a;
+    --border:rgba(255,255,255,0.09);
+    --border-strong:rgba(255,255,255,0.16);
+    --text:#ece8f2;
+    --text-dim:#9a91ab;
+    --text-faint:#6d6580;
+    --purple:#9b6cff;
+    --purple-hi:#b08dff;
+    --purple-dim:#6e54b0;
+    --danger:#ff6b6b;
+    --danger-bg:rgba(255,107,107,0.10);
+    --ok:#7bdca0;
+    --radius:10px;
+    --gap:16px;
+    --pad:18px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    min-height:100dvh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"DM Sans",sans-serif;
+    line-height:1.5;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:20px}
+  header{
+    display:flex;align-items:center;justify-content:space-between;gap:var(--gap);
+    flex-wrap:wrap;margin-bottom:20px;
+  }
+  h1{font-size:1.25rem;font-weight:700;margin:0;letter-spacing:-0.01em}
+  h1 .dot{color:var(--purple)}
+  .keybar{display:flex;align-items:center;gap:8px;flex:1;min-width:260px;justify-content:flex-end}
+  .keybar input{flex:1;max-width:420px}
+  .grid{
+    display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);
+    gap:var(--gap);align-items:start;
+  }
+  @media (max-width:840px){ .grid{grid-template-columns:1fr} }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:var(--pad);
+  }
+  .panel + .panel{margin-top:var(--gap)}
+
+  label.field{display:block;margin-bottom:14px}
+  label.field:last-child{margin-bottom:0}
+  .lbl{
+    display:block;font-size:0.72rem;text-transform:lowercase;letter-spacing:0.05em;
+    color:var(--text-dim);margin-bottom:6px;
+  }
+  .hint{color:var(--text-faint);font-size:0.72rem;margin-top:6px}
+
+  input,select,textarea,button{font-family:inherit;font-size:0.95rem;color:var(--text)}
+  input,select,textarea{
+    width:100%;background:var(--field);border:1px solid var(--border);
+    border-radius:8px;padding:10px 12px;outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--border-strong)}
+  input:focus-visible,select:focus-visible,textarea:focus-visible{
+    border-color:var(--purple);box-shadow:0 0 0 2px rgba(155,108,255,0.25)
+  }
+  textarea{resize:vertical;min-height:96px;line-height:1.5}
+  select{appearance:none;-webkit-appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%239a91ab' stroke-width='1.5'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+  input.mono,select.mono{font-family:"DM Mono",monospace;letter-spacing:-0.01em}
+
+  .row{display:flex;gap:10px}
+  .row > *{flex:1;min-width:0}
+
+  button{
+    border:1px solid var(--border);background:var(--surface-2);
+    border-radius:8px;padding:10px 14px;cursor:pointer;
+    transition:background-color .1s ease,border-color .1s ease;
+  }
+  button:hover{background:#241e32}
+  button:focus-visible{border-color:var(--purple);box-shadow:0 0 0 2px rgba(155,108,255,0.25)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+
+  .btn-primary{
+    background:var(--purple);border-color:var(--purple);color:#100a1e;font-weight:600;width:100%;
+    padding:13px;font-size:1rem;
+  }
+  .btn-primary:hover{background:var(--purple-hi)}
+  .btn-ghost{padding:6px 10px;font-size:0.82rem}
+  .btn-cancel{
+    width:100%;padding:13px;font-size:1rem;margin-top:10px;
+    background:transparent;border-color:rgba(255,107,107,0.4);color:var(--danger);
+  }
+  .btn-cancel:hover{background:var(--danger-bg)}
+
+  /* segmented count control */
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;padding:9px 0;font-size:0.95rem;font-family:"DM Mono",monospace}
+  .seg button.active{background:var(--purple);border-color:var(--purple);color:#100a1e;font-weight:600}
+  .seg button.active:hover{background:var(--purple-hi)}
+
+  /* reference images */
+  .drop{
+    border:1px dashed var(--border-strong);border-radius:8px;padding:14px;text-align:center;
+    color:var(--text-dim);font-size:0.85rem;cursor:pointer;background:var(--field);
+  }
+  .drop:hover{border-color:var(--purple-dim)}
+  .drop.over{border-color:var(--purple);color:var(--text)}
+  .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .thumb{position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb button{
+    position:absolute;top:2px;right:2px;width:20px;height:20px;padding:0;line-height:1;
+    border-radius:5px;background:rgba(8,6,12,0.8);border:1px solid var(--border);font-size:0.8rem;
+  }
+  @media (pointer:coarse){
+    .thumb{width:72px;height:72px}
+    .thumb button{width:26px;height:26px}
+  }
+
+  /* output */
+  .out-empty{
+    display:flex;align-items:center;justify-content:center;min-height:280px;
+    color:var(--text-faint);font-size:0.9rem;text-align:center;padding:20px;
+    border:1px solid var(--border);border-radius:8px;background:var(--field);
+  }
+  .result img{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--border);background:#000}
+  .result + .result{margin-top:14px}
+  #output.multi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  #output.multi .result + .result{margin-top:0}
+  .result-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .meta{color:var(--text-faint);font-size:0.75rem;font-family:"DM Mono",monospace}
+
+  .status{margin-top:14px;font-size:0.88rem}
+  .status.err{
+    color:var(--danger);background:var(--danger-bg);border:1px solid rgba(255,107,107,0.3);
+    border-radius:8px;padding:12px 14px;
+  }
+  .status.err .code{font-family:"DM Mono",monospace;font-size:0.78rem;color:var(--text-dim);display:block;margin-top:6px}
+  .status.work{color:var(--text-dim);display:flex;align-items:center;gap:10px}
+  .spin{width:14px;height:14px;border:2px solid var(--border-strong);border-top-color:var(--purple);border-radius:50%;animation:s .7s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+
+  .note{color:var(--text-faint);font-size:0.72rem;line-height:1.5;margin-top:14px}
+  .note code{font-family:"DM Mono",monospace;color:var(--text-dim)}
+  .valid-msg{color:var(--danger);font-size:0.72rem;margin-top:6px}
+  .valid-msg.ok{color:var(--text-faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>image generator<span class="dot">.</span></h1>
+    <div class="keybar">
+      <input id="apiKey" class="mono" type="password" placeholder="requesty api key" autocomplete="off" spellcheck="false">
+      <button id="keyToggle" class="btn-ghost" type="button" title="show or hide key">show</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- controls -->
+    <section class="panel" aria-label="controls">
+      <label class="field">
+        <span class="lbl">model</span>
+        <select id="model"></select>
+      </label>
+
+      <!-- gemini controls -->
+      <div id="geminiControls">
+        <div class="row">
+          <label class="field" style="margin-bottom:0">
+            <span class="lbl">aspect ratio</span>
+            <select id="aspect" class="mono"></select>
+          </label>
+          <label class="field" style="margin-bottom:0">
+            <span class="lbl">resolution</span>
+            <select id="resolution" class="mono"></select>
+          </label>
+        </div>
+      </div>
+
+      <!-- gpt controls -->
+      <div id="gptControls" hidden>
+        <div class="row">
+          <label class="field" style="margin-bottom:0">
+            <span class="lbl">size</span>
+            <select id="gptSize" class="mono"></select>
+          </label>
+          <label class="field" style="margin-bottom:0">
+            <span class="lbl">quality</span>
+            <select id="gptQuality"></select>
+          </label>
+        </div>
+        <div id="customSize" hidden style="margin-top:12px">
+          <div class="row">
+            <label class="field" style="margin-bottom:0">
+              <span class="lbl">width px</span>
+              <input id="customW" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024">
+            </label>
+            <label class="field" style="margin-bottom:0">
+              <span class="lbl">height px</span>
+              <input id="customH" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024">
+            </label>
+          </div>
+          <div id="sizeValid" class="valid-msg ok">edges multiple of 16, longest &le; 3840, ratio &le; 3:1, total 0.66 to 8.29 MP</div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <span class="lbl">images</span>
+        <div id="countGroup" class="seg" role="group" aria-label="number of images">
+          <button type="button" data-count="1" class="active">1</button>
+          <button type="button" data-count="2">2</button>
+          <button type="button" data-count="3">3</button>
+          <button type="button" data-count="4">4</button>
+        </div>
+      </div>
+
+      <label class="field" style="margin-top:14px">
+        <span class="lbl">prompt</span>
+        <textarea id="prompt" placeholder="describe the image"></textarea>
+      </label>
+
+      <div class="field">
+        <span class="lbl">reference images <span id="refCount" style="color:var(--text-faint)"></span></span>
+        <div id="drop" class="drop" tabindex="0" role="button">tap to add or drop images here</div>
+        <input id="fileInput" type="file" accept="image/*" multiple hidden>
+        <div id="thumbs" class="thumbs"></div>
+      </div>
+
+      <button id="generate" class="btn-primary" type="button">generate</button>
+      <button id="cancel" class="btn-cancel" type="button" hidden>cancel</button>
+      <div id="status" hidden></div>
+
+      <p class="note">
+        runs entirely in your browser, the key is stored locally on this device only. downloads are the exact png bytes the api returns, no re-encoding.
+        if a request fails with a cors error in the console, the browser is blocking the direct call and you will need to run this through a local proxy.
+      </p>
+    </section>
+
+    <!-- output -->
+    <section class="panel" aria-label="output">
+      <span class="lbl">output</span>
+      <div id="output">
+        <div class="out-empty">nothing generated yet</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   MODEL IDS  -  edit here if a model returns 404
+   ========================================================================= */
+const MODELS = {
+  "gemini-3-pro": {
+    id: "vertex/google/gemini-3-pro-image-preview",
+    label: "Gemini 3 Pro",
+    endpoint: "chat",
+    aspectRatios: ["1:1","3:2","2:3","3:4","4:3","4:5","5:4","9:16","16:9","21:9"],
+    resolutions: ["1K","2K","4K"],
+    defaultResolution: "1K",
+    maxRefs: 14
+  },
+  "gemini-3.1-flash": {
+    id: "vertex/google/gemini-3.1-flash-image-preview",
+    label: "Gemini 3.1 Flash",
+    endpoint: "chat",
+    aspectRatios: ["1:1","3:2","2:3","3:4","1:4","4:1","4:3","4:5","5:4","1:8","8:1","9:16","16:9","21:9","9:21"],
+    resolutions: ["512","1K","2K","4K"],
+    defaultResolution: "1K",
+    maxRefs: 14
+  },
+  "gpt-image-2": {
+    id: "azure/openai/gpt-image-2",
+    label: "GPT Image 2",
+    endpoint: "images",
+    sizePresets: ["auto","1024x1024","1536x1024","1024x1536","2048x2048","2048x1152","3840x2160","2160x3840","custom"],
+    qualities: ["auto","low","medium","high"],
+    defaultQuality: "medium",
+    maxRefs: 16
+  }
+};
+
+const BASE = "https://router.requesty.ai/v1";
+
+/* ----- elements ----- */
+const $ = id => document.getElementById(id);
+const els = {
+  key: $("apiKey"), keyToggle: $("keyToggle"),
+  model: $("model"),
+  geminiControls: $("geminiControls"), aspect: $("aspect"), resolution: $("resolution"),
+  gptControls: $("gptControls"), gptSize: $("gptSize"), gptQuality: $("gptQuality"),
+  customSize: $("customSize"), customW: $("customW"), customH: $("customH"), sizeValid: $("sizeValid"),
+  prompt: $("prompt"),
+  countGroup: $("countGroup"),
+  drop: $("drop"), fileInput: $("fileInput"), thumbs: $("thumbs"), refCount: $("refCount"),
+  generate: $("generate"), cancel: $("cancel"), status: $("status"), output: $("output")
+};
+
+/* ----- state ----- */
+let refs = [];            // [{ dataUrl, name }]
+let count = 1;            // number of images to generate
+let controller = null;    // AbortController for the active generation
+const KEY_STORE = "requesty_image_key";
+
+/* ----- api key persistence ----- */
+try { const k = localStorage.getItem(KEY_STORE); if (k) els.key.value = k; } catch (_) {}
+els.key.addEventListener("input", () => {
+  try { localStorage.setItem(KEY_STORE, els.key.value.trim()); } catch (_) {}
+});
+els.keyToggle.addEventListener("click", () => {
+  const hidden = els.key.type === "password";
+  els.key.type = hidden ? "text" : "password";
+  els.keyToggle.textContent = hidden ? "hide" : "show";
+});
+
+/* ----- count segmented control ----- */
+els.countGroup.addEventListener("click", e => {
+  const btn = e.target.closest("button[data-count]");
+  if (!btn) return;
+  count = parseInt(btn.dataset.count, 10);
+  els.countGroup.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+});
+
+/* ----- populate model select ----- */
+for (const [k, m] of Object.entries(MODELS)) {
+  const o = document.createElement("option");
+  o.value = k; o.textContent = m.label;
+  els.model.appendChild(o);
+}
+
+function fillSelect(sel, values, selected) {
+  sel.innerHTML = "";
+  for (const v of values) {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = v;
+    if (v === selected) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+function currentModel() { return MODELS[els.model.value]; }
+
+/* ----- swap controls when model changes ----- */
+function syncControls() {
+  const m = currentModel();
+  const isGpt = m.endpoint === "images";
+  els.geminiControls.hidden = isGpt;
+  els.gptControls.hidden = !isGpt;
+
+  if (isGpt) {
+    fillSelect(els.gptSize, m.sizePresets, "1024x1024");
+    fillSelect(els.gptQuality, m.qualities, m.defaultQuality);
+    toggleCustomSize();
+  } else {
+    fillSelect(els.aspect, m.aspectRatios, "1:1");
+    fillSelect(els.resolution, m.resolutions, m.defaultResolution);
+  }
+
+  // trim refs over the new model's limit
+  if (refs.length > m.maxRefs) refs = refs.slice(0, m.maxRefs);
+  renderThumbs();
+  validateCustomSize();
+}
+
+function toggleCustomSize() {
+  const custom = els.gptSize.value === "custom";
+  els.customSize.hidden = !custom;
+  validateCustomSize();
+}
+
+els.model.addEventListener("change", syncControls);
+els.gptSize.addEventListener("change", toggleCustomSize);
+els.customW.addEventListener("input", validateCustomSize);
+els.customH.addEventListener("input", validateCustomSize);
+
+/* ----- gpt custom size validation -----
+   rules: edges multiple of 16, longest <= 3840, long/short ratio <= 3,
+   total pixels between 655360 and 8294400 ----- */
+function customSizeError() {
+  const w = parseInt(els.customW.value, 10);
+  const h = parseInt(els.customH.value, 10);
+  if (!w || !h) return "enter both width and height";
+  if (w % 16 !== 0 || h % 16 !== 0) return "both edges must be multiples of 16";
+  if (Math.max(w, h) > 3840) return "longest edge must be 3840 or less";
+  if (Math.max(w, h) / Math.min(w, h) > 3) return "long-to-short ratio must be 3:1 or less";
+  const total = w * h;
+  if (total < 655360) return "total too small, minimum 655,360 px";
+  if (total > 8294400) return "total too large, maximum 8,294,400 px";
+  return null;
+}
+
+function validateCustomSize() {
+  const isGpt = currentModel().endpoint === "images";
+  if (!isGpt || els.gptSize.value !== "custom") { setGenerateEnabled(true); return; }
+  const err = customSizeError();
+  if (err) {
+    els.sizeValid.textContent = err;
+    els.sizeValid.classList.remove("ok");
+    setGenerateEnabled(false);
+  } else {
+    const w = els.customW.value, h = els.customH.value;
+    els.sizeValid.textContent = `${w}x${h} valid, ${(w * h / 1e6).toFixed(2)} MP`;
+    els.sizeValid.classList.add("ok");
+    setGenerateEnabled(true);
+  }
+}
+
+function setGenerateEnabled(on) { els.generate.disabled = !on; }
+
+/* ----- reference images ----- */
+function renderThumbs() {
+  const m = currentModel();
+  els.thumbs.innerHTML = "";
+  refs.forEach((r, i) => {
+    const d = document.createElement("div");
+    d.className = "thumb";
+    const img = document.createElement("img");
+    img.src = r.dataUrl; img.alt = r.name || "reference";
+    const x = document.createElement("button");
+    x.type = "button"; x.textContent = "\u00d7"; x.title = "remove";
+    x.addEventListener("click", () => { refs.splice(i, 1); renderThumbs(); });
+    d.appendChild(img); d.appendChild(x);
+    els.thumbs.appendChild(d);
+  });
+  els.refCount.textContent = `${refs.length} / ${m.maxRefs}`;
+  els.drop.style.opacity = refs.length >= m.maxRefs ? "0.5" : "1";
+}
+
+function readFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error("could not read " + file.name));
+    r.readAsDataURL(file);
+  });
+}
+
+async function addFiles(fileList) {
+  const m = currentModel();
+  const files = Array.from(fileList).filter(f => f.type.startsWith("image/"));
+  for (const f of files) {
+    if (refs.length >= m.maxRefs) break;
+    try { refs.push({ dataUrl: await readFile(f), name: f.name }); }
+    catch (_) {}
+  }
+  renderThumbs();
+}
+
+els.drop.addEventListener("click", () => els.fileInput.click());
+els.drop.addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); els.fileInput.click(); }
+});
+els.fileInput.addEventListener("change", e => { addFiles(e.target.files); els.fileInput.value = ""; });
+["dragenter","dragover"].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.remove("over"); }));
+els.drop.addEventListener("drop", e => { if (e.dataTransfer?.files) addFiles(e.dataTransfer.files); });
+
+/* ----- status ui ----- */
+function showWorking(text) {
+  els.status.hidden = false;
+  els.status.className = "status work";
+  els.status.innerHTML = "";
+  const s = document.createElement("span"); s.className = "spin";
+  els.status.appendChild(s);
+  els.status.appendChild(document.createTextNode(text));
+}
+function showError(message, codeLine) {
+  els.status.hidden = false;
+  els.status.className = "status err";
+  els.status.innerHTML = "";
+  els.status.appendChild(document.createTextNode(message));
+  if (codeLine) {
+    const c = document.createElement("span"); c.className = "code"; c.textContent = codeLine;
+    els.status.appendChild(c);
+  }
+}
+function clearStatus() { els.status.hidden = true; els.status.innerHTML = ""; }
+
+/* ----- map a failed response to a human message ----- */
+const STATUS_HINT = {
+  401: "no api key was sent, paste your requesty key up top",
+  402: "requesty balance exhausted, top up your account",
+  403: "key invalid, expired, or the model is blocked by your access policy",
+  404: "model not found, check the id near the top of this file",
+  412: "monthly spend limit reached for this key",
+  429: "rate limited, wait a moment and try again",
+  500: "router or provider error, try again",
+  502: "provider is down, try again shortly",
+  503: "provider timed out, try again",
+  529: "provider overloaded, try again shortly"
+};
+
+async function parseError(resp) {
+  let origin = "", message = "";
+  try {
+    const j = await resp.json();
+    origin = j?.error?.origin || "";
+    message = j?.error?.message || "";
+  } catch (_) {}
+  const hint = STATUS_HINT[resp.status] || "request failed";
+  const friendly = message || hint;
+  const code = `HTTP ${resp.status}${origin ? " \u00b7 " + origin : ""}${message && hint !== friendly ? " \u00b7 " + hint : ""}`;
+  return { friendly, code };
+}
+
+/* ----- build the request for the active model ----- */
+function buildRequest(m, prompt) {
+  if (m.endpoint === "chat") {
+    const content = refs.length
+      ? [{ type: "text", text: prompt },
+         ...refs.map(r => ({ type: "image_url", image_url: { url: r.dataUrl } }))]
+      : prompt;
+    return {
+      url: BASE + "/chat/completions",
+      body: {
+        model: m.id,
+        messages: [{ role: "user", content }],
+        image_config: { aspect_ratio: els.aspect.value, image_size: els.resolution.value }
+      }
+    };
+  }
+
+  // gpt images api
+  let size = els.gptSize.value;
+  if (size === "custom") size = `${els.customW.value}x${els.customH.value}`;
+  const common = {
+    model: m.id,
+    prompt,
+    n: 1,
+    size,
+    quality: els.gptQuality.value,
+    response_format: "b64_json",
+    output_format: "png"
+  };
+  if (refs.length) {
+    return {
+      url: BASE + "/images/edits",
+      body: { ...common, images: refs.map(r => ({ image_url: r.dataUrl })) }
+    };
+  }
+  return { url: BASE + "/images/generations", body: common };
+}
+
+/* ----- pull image data urls out of either response shape ----- */
+function extractImages(m, json) {
+  const out = [];
+  if (m.endpoint === "chat") {
+    const imgs = json?.choices?.[0]?.message?.images || [];
+    for (const im of imgs) {
+      const url = im?.image_url?.url;
+      if (url) out.push(url);
+    }
+  } else {
+    const data = json?.data || [];
+    for (const d of data) {
+      if (d.b64_json) out.push("data:image/png;base64," + d.b64_json);
+      else if (d.url) out.push(d.url);
+    }
+  }
+  return out;
+}
+
+/* ----- render results + wire downloads ----- */
+function renderResults(urls, m) {
+  els.output.innerHTML = "";
+  els.output.classList.toggle("multi", urls.length > 1);
+  urls.forEach((url, i) => {
+    const box = document.createElement("div");
+    box.className = "result";
+
+    const img = document.createElement("img");
+    img.src = url; img.alt = "generated image";
+    box.appendChild(img);
+
+    const bar = document.createElement("div");
+    bar.className = "result-bar";
+    const meta = document.createElement("span");
+    meta.className = "meta";
+    meta.textContent = m.id;
+    const dl = document.createElement("button");
+    dl.type = "button"; dl.textContent = "download png";
+    dl.addEventListener("click", () => downloadPng(url, m, i));
+    bar.appendChild(meta); bar.appendChild(dl);
+    box.appendChild(bar);
+
+    els.output.appendChild(box);
+  });
+}
+
+/* convert a data url to a Blob of the exact bytes (no canvas, no recompression) */
+function dataUrlToBlob(dataUrl) {
+  const comma = dataUrl.indexOf(",");
+  const header = dataUrl.slice(0, comma);
+  const b64 = dataUrl.slice(comma + 1);
+  const mimeMatch = header.match(/data:(.*?)(;base64)?$/);
+  const mime = mimeMatch ? mimeMatch[1] : "image/png";
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function downloadPng(url, m, i) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const safeModel = m.id.replace(/[\/]/g, "_");
+  const name = `${safeModel}_${stamp}${i ? "_" + i : ""}.png`;
+
+  if (url.startsWith("data:")) {
+    triggerDownload(dataUrlToBlob(url), name);
+    return;
+  }
+  // remote url fallback: try to fetch the bytes, else open in a tab
+  try {
+    const r = await fetch(url);
+    const blob = await r.blob();
+    triggerDownload(blob, name);
+  } catch (_) {
+    window.open(url, "_blank");
+  }
+}
+
+/* ----- one request, returns image data urls or throws a friendly error ----- */
+async function requestImages(url, body, key, signal) {
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+    body: JSON.stringify(body),
+    signal
+  });
+  if (!resp.ok) {
+    const { friendly, code } = await parseError(resp);
+    const err = new Error(friendly); err.code = code;
+    throw err;
+  }
+  const json = await resp.json();
+  const urls = extractImages(currentModel(), json);
+  if (!urls.length) {
+    const textBack = json?.choices?.[0]?.message?.content;
+    const err = new Error("no image came back" + (textBack ? ", the model replied with text instead" : "."));
+    err.code = textBack ? String(textBack).slice(0, 240) : "";
+    throw err;
+  }
+  return urls;
+}
+
+/* ----- toggle generating ui ----- */
+function setGenerating(on) {
+  els.generate.hidden = on;
+  els.cancel.hidden = !on;
+  els.model.disabled = on;
+}
+
+/* ----- generate ----- */
+async function generate() {
+  const key = els.key.value.trim();
+  const prompt = els.prompt.value.trim();
+  const m = currentModel();
+
+  if (!key) { showError("paste your requesty api key first."); return; }
+  if (!prompt) { showError("write a prompt first."); return; }
+  if (m.endpoint === "images" && els.gptSize.value === "custom" && customSizeError()) {
+    showError("fix the custom size: " + customSizeError()); return;
+  }
+
+  const { url, body } = buildRequest(m, prompt);
+  const n = count;
+
+  controller = new AbortController();
+  setGenerating(true);
+  showWorking(`generating ${n} image${n > 1 ? "s" : ""}, this can take a while at high resolution`);
+
+  try {
+    // fire n parallel requests (1 image each) so it works the same on every model
+    const tasks = Array.from({ length: n }, () => requestImages(url, body, key, controller.signal));
+    const settled = await Promise.allSettled(tasks);
+
+    if (controller.signal.aborted) { clearStatus(); return; }
+
+    const urls = [];
+    const errors = [];
+    for (const r of settled) {
+      if (r.status === "fulfilled") urls.push(...r.value);
+      else if (r.reason?.name !== "AbortError") errors.push(r.reason);
+    }
+
+    if (!urls.length) {
+      const e = errors[0] || new Error("request failed");
+      showError(e.message, e.code || "");
+      return;
+    }
+
+    renderResults(urls, m);
+    if (errors.length) {
+      showError(`${errors.length} of ${n} failed, showing the ${urls.length} that worked`, errors[0].message);
+    } else {
+      clearStatus();
+    }
+  } catch (e) {
+    if (e?.name !== "AbortError") {
+      showError("request could not be sent. if the console shows a cors error, the browser blocked the direct call and you need a local proxy.",
+                String(e && e.message ? e.message : e));
+    }
+  } finally {
+    setGenerating(false);
+    controller = null;
+    validateCustomSize();
+  }
+}
+
+els.generate.addEventListener("click", generate);
+els.cancel.addEventListener("click", () => { if (controller) controller.abort(); });
+
+/* ----- init ----- */
+syncControls();
+renderThumbs();
+</script>
+</body>
+</html>
