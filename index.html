@@ -21,7 +21,7 @@
     /* text */
     --text:#efe9f7;
     --dim:#a294bd;
-    --faint:#6f6389;
+    --faint:#83779d;
 
     /* accent */
     --wis:#b48bff;
@@ -89,12 +89,14 @@
     padding-bottom:var(--s4);margin-bottom:var(--s5);
     border-bottom:1px solid var(--line);
   }
+  /* solid colour on purpose. a gradient here needs background-clip:text, which
+     paints only inside the element box and slices Syne's descenders off. */
   .mark-name{
     display:block;
-    font-family:var(--display);font-weight:700;font-size:1.3rem;letter-spacing:-0.055em;line-height:1;
-    background:linear-gradient(96deg,var(--text) 20%,var(--wis-hi));
-    -webkit-background-clip:text;background-clip:text;color:transparent;
+    font-family:var(--display);font-weight:700;font-size:1.3rem;letter-spacing:-0.055em;
+    line-height:1.3;color:var(--text);
   }
+  .mark-name em{font-style:normal;color:var(--wis-hi)}
   .mark-sub{
     display:block;margin-top:var(--s2);
     font-family:var(--mono);font-size:0.7rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);
@@ -226,6 +228,9 @@
   @media (pointer:coarse){
     .thumb{width:70px;height:70px}
     .thumb button{width:26px;height:26px;font-size:0.85rem}
+    /* fingers need more than a text-sized target */
+    .btn-ghost{padding:10px 14px}
+    .disclosure summary{padding:8px 0}
   }
 
   /* custom size validity */
@@ -335,7 +340,9 @@
 
   .results{display:grid;gap:var(--s4)}
   .results.multi{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))}
-  .result{animation:rise .34s var(--ease) both}
+  /* grid items refuse to shrink below their content without this, which lets a
+     1024px image push the whole page sideways on a phone */
+  .result{min-width:0;animation:rise .34s var(--ease) both}
   .result img{
     display:block;width:auto;max-width:100%;height:auto;max-height:78vh;margin:0 auto;
     border:1px solid var(--line);border-radius:var(--r-sm);
@@ -371,7 +378,7 @@
 <div class="wrap">
   <header class="masthead">
     <div class="mark">
-      <span class="mark-name">imagegen</span>
+      <span class="mark-name">image<em>gen</em></span>
       <span class="mark-sub">requesty router</span>
     </div>
     <div class="key-state" id="keyState">
@@ -492,7 +499,7 @@
    ========================================================================= */
 const MODELS = {
   "gemini-3-pro": {
-    id: "vertex/google/gemini-3-pro-image-preview",
+    id: "vertex/google/gemini-3-pro-image",
     label: "Gemini 3 Pro",
     endpoint: "chat",
     aspectRatios: ["1:1","3:2","2:3","3:4","4:3","4:5","5:4","9:16","16:9","21:9"],
@@ -982,11 +989,12 @@ function clearResults() {
 /* a 4K png is tens of megabytes as base64, and the string sticks around in the
    heap for as long as anything points at it. converting once to a blob drops a
    third of the weight, leaves a single copy, and gives us something to revoke. */
-function toResult(url, modelId) {
-  if (!url.startsWith("data:")) return { url, modelId };
+function toResult(url, m) {
+  const meta = { modelId: m.id, label: m.label };
+  if (!url.startsWith("data:")) return { url, ...meta };
   const blob = dataUrlToBlob(url);
   const objectUrl = URL.createObjectURL(blob);
-  return { url: objectUrl, objectUrl, blob, modelId };
+  return { url: objectUrl, objectUrl, blob, ...meta };
 }
 
 function appendResults(urls, m) {
@@ -996,7 +1004,7 @@ function appendResults(urls, m) {
 
   for (const url of urls) {
     const index = results.length;
-    const result = toResult(url, m.id);
+    const result = toResult(url, m);
     results.push(result);
 
     const card = document.createElement("div");
@@ -1010,7 +1018,8 @@ function appendResults(urls, m) {
     bar.className = "result-bar";
     const meta = document.createElement("span");
     meta.className = "meta";
-    meta.textContent = m.id;
+    meta.textContent = m.label;
+    meta.title = m.id;
     const download = document.createElement("button");
     download.type = "button";
     download.className = "btn-ghost";
