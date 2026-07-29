@@ -3,272 +3,485 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Image Generator</title>
+<meta name="color-scheme" content="dark">
+<title>imagegen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0c0a11;
-    --surface:#15111d;
-    --surface-2:#1d1828;
-    --field:#120e1a;
-    --border:rgba(255,255,255,0.09);
-    --border-strong:rgba(255,255,255,0.16);
-    --text:#ece8f2;
-    --text-dim:#9a91ab;
-    --text-faint:#6d6580;
-    --purple:#9b6cff;
-    --purple-hi:#b08dff;
-    --purple-dim:#6e54b0;
-    --danger:#ff6b6b;
-    --danger-bg:rgba(255,107,107,0.10);
-    --ok:#7bdca0;
-    --radius:10px;
-    --gap:16px;
-    --pad:18px;
-    font-size:16px;
+    /* surfaces */
+    --ink:#0b0810;
+    --panel:#141020;
+    --panel-2:#1c1630;
+    --field:#100c1b;
+    --line:rgba(255,255,255,0.07);
+    --line-2:rgba(255,255,255,0.15);
+
+    /* text */
+    --text:#efe9f7;
+    --dim:#a294bd;
+    --faint:#6f6389;
+
+    /* accent */
+    --wis:#b48bff;
+    --wis-hi:#c9aaff;
+    --wis-lift:#d6bcff;
+    --wis-deep:#7a55d6;
+    --wis-glow:rgba(180,139,255,0.35);
+    --on-accent:#180d2c;
+    --raise:#261e3c;
+    --panel-clear:rgba(20,16,32,0);
+
+    /* signal */
+    --rose:#ff8fa8;
+    --rose-bg:rgba(255,143,168,0.09);
+    --amber:#f2c46b;
+    --amber-bg:rgba(242,196,107,0.09);
+    --mint:#8fe3b8;
+
+    /* geometry */
+    --r:14px;
+    --r-sm:9px;
+    --r-pill:999px;
+    --ar:1;
+
+    /* spacing scale */
+    --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+
+    /* type */
+    --display:"Syne",sans-serif;
+    --body:"Outfit",sans-serif;
+    --mono:"DM Mono",monospace;
+
+    --ease:cubic-bezier(0.22,1,0.36,1);
+    --ease-smooth:cubic-bezier(0.4,0,0.2,1);
   }
+
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
     min-height:100dvh;
-    background:var(--bg);
+    background:var(--ink);
     color:var(--text);
-    font-family:"DM Sans",sans-serif;
-    line-height:1.5;
+    font-family:var(--body);
+    font-weight:400;
+    font-size:16px;
+    line-height:1.55;
     -webkit-text-size-adjust:100%;
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:1200px;margin:0 auto;padding:20px}
-  header{
-    display:flex;align-items:center;justify-content:space-between;gap:var(--gap);
-    flex-wrap:wrap;margin-bottom:20px;
+
+  /* ambient wisteria light, fixed so it never scrolls away */
+  .bg{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(900px 600px at 12% -8%, rgba(122,85,214,0.28), transparent 62%),
+      radial-gradient(700px 520px at 96% 8%, rgba(180,139,255,0.13), transparent 60%),
+      radial-gradient(1000px 700px at 50% 118%, rgba(88,58,150,0.20), transparent 65%);
   }
-  h1{font-size:1.25rem;font-weight:700;margin:0;letter-spacing:-0.01em}
-  h1 .dot{color:var(--purple)}
-  .keybar{display:flex;align-items:center;gap:8px;flex:1;min-width:260px;justify-content:flex-end}
-  .keybar input{flex:1;max-width:420px}
-  .grid{
-    display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);
-    gap:var(--gap);align-items:start;
+
+  .wrap{max-width:1240px;margin:0 auto;padding:var(--s5) var(--s4) var(--s6)}
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s4);
+    padding-bottom:var(--s4);margin-bottom:var(--s5);
+    border-bottom:1px solid var(--line);
   }
-  @media (max-width:840px){ .grid{grid-template-columns:1fr} }
+  .mark-name{
+    display:block;
+    font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;line-height:1;
+    background:linear-gradient(96deg,var(--text) 20%,var(--wis-hi));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .mark-sub{
+    display:block;margin-top:var(--s2);
+    font-family:var(--mono);font-size:0.7rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);
+  }
+  .key-state{
+    display:flex;align-items:center;gap:var(--s2);
+    padding:6px 12px;border:1px solid var(--line);border-radius:var(--r-pill);
+    background:rgba(255,255,255,0.02);
+    font-family:var(--mono);font-size:0.72rem;color:var(--dim);white-space:nowrap;
+  }
+  .key-state .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--faint);
+    transition:background-color .15s var(--ease-smooth),box-shadow .15s var(--ease-smooth);
+  }
+  .key-state.live .dot{background:var(--mint);box-shadow:0 0 0 3px rgba(143,227,184,0.16)}
+
+  /* ---------- layout ---------- */
+  .grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:var(--s4);align-items:start}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr} }
 
   .panel{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:var(--pad);
+    border:1px solid var(--line);border-radius:var(--r);
+    background:linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0) 140px),var(--panel);
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 40px -28px rgba(0,0,0,0.9);
   }
-  .panel + .panel{margin-top:var(--gap)}
+  .controls{padding:var(--s5) var(--s4) var(--s4)}
+  @media (min-width:901px){ .canvas{position:sticky;top:var(--s4)} }
+  .canvas{padding:var(--s4);min-height:340px}
 
-  label.field{display:block;margin-bottom:14px}
-  label.field:last-child{margin-bottom:0}
-  .lbl{
-    display:block;font-size:0.72rem;text-transform:lowercase;letter-spacing:0.05em;
-    color:var(--text-dim);margin-bottom:6px;
+  /* ---------- shared bits ---------- */
+  .block{margin-bottom:var(--s5)}
+  .block:last-child{margin-bottom:0}
+  .eyebrow{
+    display:block;margin-bottom:var(--s2);
+    font-family:var(--display);font-weight:600;font-size:0.7rem;
+    letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);
   }
-  .hint{color:var(--text-faint);font-size:0.72rem;margin-top:6px}
+  .hint{margin-top:var(--s2);font-size:0.74rem;line-height:1.45;color:var(--faint)}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+  .mono{font-family:var(--mono);letter-spacing:-0.01em}
 
-  input,select,textarea,button{font-family:inherit;font-size:0.95rem;color:var(--text)}
+  input,select,textarea,button{font-family:var(--body);font-size:0.95rem;color:var(--text)}
   input,select,textarea{
-    width:100%;background:var(--field);border:1px solid var(--border);
-    border-radius:8px;padding:10px 12px;outline:none;
+    width:100%;padding:11px 13px;
+    border:1px solid var(--line);border-radius:var(--r-sm);
+    background:var(--field);
+    outline:none;
+    transition:border-color .12s var(--ease-smooth),box-shadow .12s var(--ease-smooth);
   }
-  input:focus,select:focus,textarea:focus{border-color:var(--border-strong)}
-  input:focus-visible,select:focus-visible,textarea:focus-visible{
-    border-color:var(--purple);box-shadow:0 0 0 2px rgba(155,108,255,0.25)
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+  input:hover,select:hover,textarea:hover{border-color:var(--line-2)}
+  input:focus-visible,select:focus-visible,textarea:focus-visible,
+  input:focus,select:focus,textarea:focus{border-color:var(--wis);box-shadow:0 0 0 3px var(--wis-glow)}
+  textarea{min-height:118px;resize:vertical;line-height:1.55}
+  select{
+    appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:34px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%23a294bd' stroke-width='1.4' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;
   }
-  textarea{resize:vertical;min-height:96px;line-height:1.5}
-  select{appearance:none;-webkit-appearance:none;cursor:pointer;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%239a91ab' stroke-width='1.5'/></svg>");
-    background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
-  input.mono,select.mono{font-family:"DM Mono",monospace;letter-spacing:-0.01em}
-
-  .row{display:flex;gap:10px}
-  .row > *{flex:1;min-width:0}
 
   button{
-    border:1px solid var(--border);background:var(--surface-2);
-    border-radius:8px;padding:10px 14px;cursor:pointer;
-    transition:background-color .1s ease,border-color .1s ease;
+    border:1px solid var(--line);border-radius:var(--r-sm);
+    padding:10px 14px;
+    background:var(--panel-2);
+    cursor:pointer;
+    transition:background-color .12s var(--ease-smooth),border-color .12s var(--ease-smooth),transform .12s var(--ease),color .12s var(--ease-smooth);
   }
-  button:hover{background:#241e32}
-  button:focus-visible{border-color:var(--purple);box-shadow:0 0 0 2px rgba(155,108,255,0.25)}
-  button:disabled{opacity:.45;cursor:not-allowed}
+  button:hover{background:var(--raise);border-color:var(--line-2)}
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:none;border-color:var(--wis);box-shadow:0 0 0 3px var(--wis-glow)}
+  button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn-ghost{padding:6px 11px;font-size:0.78rem;background:transparent;color:var(--dim)}
+  .btn-ghost:hover{background:rgba(255,255,255,0.04);color:var(--text)}
 
-  .btn-primary{
-    background:var(--purple);border-color:var(--purple);color:#100a1e;font-weight:600;width:100%;
-    padding:13px;font-size:1rem;
+  /* model pills */
+  .pills{display:flex;gap:var(--s2);flex-wrap:wrap}
+  .pills button{
+    flex:1 1 auto;min-width:104px;
+    padding:9px 12px;border-radius:var(--r-pill);
+    font-size:0.84rem;font-weight:500;color:var(--dim);
+    background:transparent;
   }
-  .btn-primary:hover{background:var(--purple-hi)}
-  .btn-ghost{padding:6px 10px;font-size:0.82rem}
-  .btn-cancel{
-    width:100%;padding:13px;font-size:1rem;margin-top:10px;
-    background:transparent;border-color:rgba(255,107,107,0.4);color:var(--danger);
+  .pills button[aria-pressed="true"]{
+    background:linear-gradient(180deg,rgba(180,139,255,0.22),rgba(180,139,255,0.10));
+    border-color:rgba(180,139,255,0.5);color:var(--text);
+    box-shadow:0 0 22px -8px var(--wis-glow) inset;
   }
-  .btn-cancel:hover{background:var(--danger-bg)}
 
-  /* segmented count control */
-  .seg{display:flex;gap:6px}
-  .seg button{flex:1;padding:9px 0;font-size:0.95rem;font-family:"DM Mono",monospace}
-  .seg button.active{background:var(--purple);border-color:var(--purple);color:#100a1e;font-weight:600}
-  .seg button.active:hover{background:var(--purple-hi)}
+  /* count segmented */
+  .seg{display:flex;gap:var(--s2)}
+  .seg button{
+    flex:1;padding:10px 0;
+    font-family:var(--mono);font-size:0.92rem;color:var(--dim);
+    background:var(--field);
+  }
+  .seg button[aria-pressed="true"]{
+    background:var(--wis);border-color:var(--wis);color:var(--on-accent);font-weight:500;
+  }
+  .seg button[aria-pressed="true"]:hover{background:var(--wis-hi);border-color:var(--wis-hi)}
 
-  /* reference images */
+  /* references */
   .drop{
-    border:1px dashed var(--border-strong);border-radius:8px;padding:14px;text-align:center;
-    color:var(--text-dim);font-size:0.85rem;cursor:pointer;background:var(--field);
+    display:flex;align-items:center;justify-content:center;gap:var(--s2);
+    padding:16px 14px;
+    border:1px dashed var(--line-2);border-radius:var(--r-sm);
+    background:var(--field);
+    font-size:0.85rem;color:var(--dim);text-align:center;
+    cursor:pointer;
+    transition:border-color .12s var(--ease-smooth),background-color .12s var(--ease-smooth),color .12s var(--ease-smooth);
   }
-  .drop:hover{border-color:var(--purple-dim)}
-  .drop.over{border-color:var(--purple);color:var(--text)}
-  .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-  .thumb{position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .drop:hover{border-color:var(--wis-deep);color:var(--text)}
+  .drop.over{border-color:var(--wis);background:rgba(180,139,255,0.08);color:var(--text)}
+  .drop:focus-visible{outline:none;border-color:var(--wis);box-shadow:0 0 0 3px var(--wis-glow)}
+  .drop.full{cursor:not-allowed;opacity:.55}
+  .count-tag{font-family:var(--mono);font-size:0.72rem;color:var(--faint);letter-spacing:0}
+  .thumbs{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)}
+  .thumb{
+    position:relative;width:58px;height:58px;
+    border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;
+    animation:pop .22s var(--ease) both;
+  }
+  .thumb img{width:100%;height:100%;display:block;object-fit:cover}
   .thumb button{
-    position:absolute;top:2px;right:2px;width:20px;height:20px;padding:0;line-height:1;
-    border-radius:5px;background:rgba(8,6,12,0.8);border:1px solid var(--border);font-size:0.8rem;
+    position:absolute;top:3px;right:3px;width:20px;height:20px;padding:0;
+    border-radius:6px;background:rgba(8,5,14,0.82);
+    font-size:0.72rem;line-height:1;color:var(--text);
   }
   @media (pointer:coarse){
-    .thumb{width:72px;height:72px}
-    .thumb button{width:26px;height:26px}
+    .thumb{width:70px;height:70px}
+    .thumb button{width:26px;height:26px;font-size:0.85rem}
   }
 
-  /* output */
-  .out-empty{
-    display:flex;align-items:center;justify-content:center;min-height:280px;
-    color:var(--text-faint);font-size:0.9rem;text-align:center;padding:20px;
-    border:1px solid var(--border);border-radius:8px;background:var(--field);
-  }
-  .result img{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--border);background:#000}
-  .result + .result{margin-top:14px}
-  #output.multi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-  #output.multi .result + .result{margin-top:0}
-  .result-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}
-  .meta{color:var(--text-faint);font-size:0.75rem;font-family:"DM Mono",monospace}
+  /* custom size validity */
+  .valid{margin-top:var(--s2);font-family:var(--mono);font-size:0.72rem;line-height:1.45;color:var(--rose)}
+  .valid.ok{color:var(--faint)}
 
-  .status{margin-top:14px;font-size:0.88rem}
-  .status.err{
-    color:var(--danger);background:var(--danger-bg);border:1px solid rgba(255,107,107,0.3);
-    border-radius:8px;padding:12px 14px;
+  /* actions */
+  .actions{
+    position:sticky;bottom:0;z-index:2;
+    margin:0 calc(var(--s4) * -1);padding:var(--s4) var(--s4) calc(var(--s4) + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,var(--panel-clear) 0%,var(--panel) 32%);
   }
-  .status.err .code{font-family:"DM Mono",monospace;font-size:0.78rem;color:var(--text-dim);display:block;margin-top:6px}
-  .status.work{color:var(--text-dim);display:flex;align-items:center;gap:10px}
-  .spin{width:14px;height:14px;border:2px solid var(--border-strong);border-top-color:var(--purple);border-radius:50%;animation:s .7s linear infinite}
-  @keyframes s{to{transform:rotate(360deg)}}
+  .btn-primary{
+    width:100%;padding:14px;
+    border-color:transparent;border-radius:var(--r-sm);
+    background:linear-gradient(180deg,var(--wis-hi),var(--wis));
+    color:var(--on-accent);font-weight:600;font-size:1rem;letter-spacing:0.01em;
+    box-shadow:0 10px 30px -14px var(--wis-glow);
+  }
+  .btn-primary:hover{background:linear-gradient(180deg,var(--wis-lift),var(--wis-hi))}
+  .btn-cancel{
+    width:100%;padding:14px;font-size:1rem;
+    background:transparent;border-color:rgba(255,143,168,0.38);color:var(--rose);
+  }
+  .btn-cancel:hover{background:var(--rose-bg);border-color:var(--rose)}
 
-  .note{color:var(--text-faint);font-size:0.72rem;line-height:1.5;margin-top:14px}
-  .note code{font-family:"DM Mono",monospace;color:var(--text-dim)}
-  .valid-msg{color:var(--danger);font-size:0.72rem;margin-top:6px}
-  .valid-msg.ok{color:var(--text-faint)}
+  /* status */
+  .status{margin-top:var(--s3);font-size:0.86rem}
+  .status.work{color:var(--dim)}
+  .status .work-row{display:flex;align-items:center;gap:var(--s2)}
+  .track{height:3px;margin-top:10px;border-radius:var(--r-pill);background:rgba(255,255,255,0.07);overflow:hidden}
+  .track i{display:block;height:100%;background:var(--wis);border-radius:inherit;transition:width .3s var(--ease)}
+  .spin{
+    width:13px;height:13px;flex:none;
+    border:2px solid rgba(255,255,255,0.16);border-top-color:var(--wis);border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+  .status.err,.status.warn{
+    padding:12px 14px;border-radius:var(--r-sm);
+    animation:rise .22s var(--ease) both;
+  }
+  .status.err{border:1px solid rgba(255,143,168,0.3);background:var(--rose-bg);color:var(--rose)}
+  .status.warn{border:1px solid rgba(242,196,107,0.3);background:var(--amber-bg);color:var(--amber)}
+  .status .code{
+    display:block;margin-top:6px;
+    font-family:var(--mono);font-size:0.72rem;line-height:1.45;color:var(--dim);
+    word-break:break-word;
+  }
+
+  /* api key disclosure */
+  .disclosure{margin-top:var(--s2);border-top:1px solid var(--line);padding-top:var(--s4)}
+  .disclosure summary{
+    display:flex;align-items:center;gap:var(--s2);
+    list-style:none;cursor:pointer;
+    font-family:var(--display);font-weight:600;font-size:0.7rem;
+    letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);
+  }
+  .disclosure summary::-webkit-details-marker{display:none}
+  .disclosure summary::before{
+    content:"";width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+    transform:rotate(-45deg);transition:transform .18s var(--ease);
+  }
+  .disclosure[open] summary::before{transform:rotate(45deg)}
+  .disclosure summary:focus-visible{outline:none;color:var(--wis-hi)}
+  .disclosure-body{margin-top:var(--s3)}
+  .key-row{display:flex;gap:var(--s2)}
+  .key-row input{flex:1;min-width:0}
+  .key-row button{flex:none}
+  .note{margin:var(--s3) 0 0;font-size:0.73rem;line-height:1.55;color:var(--faint)}
+
+  /* ---------- canvas ---------- */
+  .canvas-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s4)}
+  .canvas-head .eyebrow{margin-bottom:0}
+
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s4);padding:var(--s5) 0}
+  /* signature element: a live frame in the exact shape of what is about to render */
+  .frame{
+    position:relative;
+    width:100%;max-width:calc(300px * var(--ar,1));
+    aspect-ratio:var(--ar,1);
+    border:1px solid var(--line-2);border-radius:var(--r-sm);
+    background:
+      linear-gradient(180deg,rgba(180,139,255,0.07),rgba(180,139,255,0.02)),
+      repeating-linear-gradient(135deg,rgba(255,255,255,0.022) 0 8px,transparent 8px 16px);
+    overflow:hidden;
+    transition:max-width .35s var(--ease),aspect-ratio .35s var(--ease);
+  }
+  .frame-label{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    padding:5px 10px;border-radius:var(--r-pill);
+    background:rgba(11,8,16,0.72);
+    font-size:0.72rem;color:var(--dim);white-space:nowrap;
+  }
+  .frame.busy::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg,transparent 20%,rgba(180,139,255,0.20) 50%,transparent 80%);
+    animation:sweep 1.5s linear infinite;
+  }
+  .empty-text{margin:0;max-width:34ch;text-align:center;font-size:0.86rem;color:var(--faint)}
+
+  .results{display:grid;gap:var(--s4)}
+  .results.multi{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))}
+  .result{animation:rise .34s var(--ease) both}
+  .result img{
+    display:block;width:auto;max-width:100%;height:auto;max-height:78vh;margin:0 auto;
+    border:1px solid var(--line);border-radius:var(--r-sm);
+    background:#000;
+  }
+  .result-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-top:10px}
+  .meta{
+    font-family:var(--mono);font-size:0.7rem;color:var(--faint);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  @keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  }
+
+  @media (max-width:900px){
+    .wrap{padding:var(--s4) var(--s3) var(--s5)}
+    .masthead{align-items:center}
+  }
+
+  /* last, so it beats any display rule of equal weight such as .empty */
+  [hidden]{display:none}
 </style>
 </head>
 <body>
+<div class="bg"></div>
+
 <div class="wrap">
-  <header>
-    <h1>image generator<span class="dot">.</span></h1>
-    <div class="keybar">
-      <input id="apiKey" class="mono" type="password" placeholder="requesty api key" autocomplete="off" spellcheck="false">
-      <button id="keyToggle" class="btn-ghost" type="button" title="show or hide key">show</button>
+  <header class="masthead">
+    <div class="mark">
+      <span class="mark-name">imagegen</span>
+      <span class="mark-sub">requesty router</span>
+    </div>
+    <div class="key-state" id="keyState">
+      <span class="dot"></span><span id="keyStateText">no key</span>
     </div>
   </header>
 
-  <div class="grid">
-    <!-- controls -->
-    <section class="panel" aria-label="controls">
-      <label class="field">
-        <span class="lbl">model</span>
-        <select id="model"></select>
-      </label>
-
-      <!-- gemini controls -->
-      <div id="geminiControls">
-        <div class="row">
-          <label class="field" style="margin-bottom:0">
-            <span class="lbl">aspect ratio</span>
-            <select id="aspect" class="mono"></select>
-          </label>
-          <label class="field" style="margin-bottom:0">
-            <span class="lbl">resolution</span>
-            <select id="resolution" class="mono"></select>
-          </label>
-        </div>
+  <main class="grid">
+    <section class="panel controls" aria-label="controls">
+      <div class="block">
+        <span class="eyebrow">model</span>
+        <div class="pills" id="modelPills" role="group" aria-label="model"></div>
       </div>
 
-      <!-- gpt controls -->
-      <div id="gptControls" hidden>
-        <div class="row">
-          <label class="field" style="margin-bottom:0">
-            <span class="lbl">size</span>
-            <select id="gptSize" class="mono"></select>
-          </label>
-          <label class="field" style="margin-bottom:0">
-            <span class="lbl">quality</span>
-            <select id="gptQuality"></select>
-          </label>
-        </div>
-        <div id="customSize" hidden style="margin-top:12px">
-          <div class="row">
-            <label class="field" style="margin-bottom:0">
-              <span class="lbl">width px</span>
-              <input id="customW" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024">
-            </label>
-            <label class="field" style="margin-bottom:0">
-              <span class="lbl">height px</span>
-              <input id="customH" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024">
-            </label>
-          </div>
-          <div id="sizeValid" class="valid-msg ok">edges multiple of 16, longest &le; 3840, ratio &le; 3:1, total 0.66 to 8.29 MP</div>
-        </div>
-      </div>
-
-      <div class="field" style="margin-top:14px">
-        <span class="lbl">images</span>
-        <div id="countGroup" class="seg" role="group" aria-label="number of images">
-          <button type="button" data-count="1" class="active">1</button>
-          <button type="button" data-count="2">2</button>
-          <button type="button" data-count="3">3</button>
-          <button type="button" data-count="4">4</button>
-        </div>
-      </div>
-
-      <label class="field" style="margin-top:14px">
-        <span class="lbl">prompt</span>
+      <div class="block">
+        <label class="eyebrow" for="prompt">prompt</label>
         <textarea id="prompt" placeholder="describe the image"></textarea>
-      </label>
+        <p class="hint">ctrl or cmd plus enter generates</p>
+      </div>
 
-      <div class="field">
-        <span class="lbl">reference images <span id="refCount" style="color:var(--text-faint)"></span></span>
-        <div id="drop" class="drop" tabindex="0" role="button">tap to add or drop images here</div>
+      <div class="block" id="geminiControls">
+        <div class="duo">
+          <div>
+            <label class="eyebrow" for="aspect">aspect ratio</label>
+            <select id="aspect" class="mono"></select>
+          </div>
+          <div>
+            <label class="eyebrow" for="resolution">resolution</label>
+            <select id="resolution" class="mono"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="block" id="gptControls" hidden>
+        <div class="duo">
+          <div>
+            <label class="eyebrow" for="gptSize">size</label>
+            <select id="gptSize" class="mono"></select>
+          </div>
+          <div>
+            <label class="eyebrow" for="gptQuality">quality</label>
+            <select id="gptQuality"></select>
+          </div>
+        </div>
+        <div id="customSize" hidden style="margin-top:var(--s3)">
+          <div class="duo">
+            <div>
+              <label class="eyebrow" for="customW">width px</label>
+              <input id="customW" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024">
+            </div>
+            <div>
+              <label class="eyebrow" for="customH">height px</label>
+              <input id="customH" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024">
+            </div>
+          </div>
+          <p id="sizeValid" class="valid ok">edges multiple of 16, longest 3840 or less, ratio up to 3:1, total 0.66 to 8.29 MP</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <span class="eyebrow">references <span id="refCount" class="count-tag"></span></span>
+        <div id="drop" class="drop" tabindex="0" role="button" aria-label="add reference images">tap to add, or drop images here</div>
         <input id="fileInput" type="file" accept="image/*" multiple hidden>
         <div id="thumbs" class="thumbs"></div>
+        <p id="refNote" class="hint" hidden></p>
       </div>
 
-      <button id="generate" class="btn-primary" type="button">generate</button>
-      <button id="cancel" class="btn-cancel" type="button" hidden>cancel</button>
-      <div id="status" hidden></div>
-
-      <p class="note">
-        runs entirely in your browser, the key is stored locally on this device only. downloads are the exact png bytes the api returns, no re-encoding.
-        if a request fails with a cors error in the console, the browser is blocking the direct call and you will need to run this through a local proxy.
-      </p>
-    </section>
-
-    <!-- output -->
-    <section class="panel" aria-label="output">
-      <span class="lbl">output</span>
-      <div id="output">
-        <div class="out-empty">nothing generated yet</div>
+      <div class="block">
+        <span class="eyebrow">images per run</span>
+        <div id="countGroup" class="seg" role="group" aria-label="number of images">
+          <button type="button" data-count="1" aria-pressed="true">1</button>
+          <button type="button" data-count="2" aria-pressed="false">2</button>
+          <button type="button" data-count="3" aria-pressed="false">3</button>
+          <button type="button" data-count="4" aria-pressed="false">4</button>
+        </div>
       </div>
+
+      <div class="actions">
+        <button id="generate" class="btn-primary" type="button">generate</button>
+        <button id="cancel" class="btn-cancel" type="button" hidden>cancel</button>
+        <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+      </div>
+
+      <details class="disclosure" id="keyBox">
+        <summary>api key</summary>
+        <div class="disclosure-body">
+          <div class="key-row">
+            <input id="apiKey" class="mono" type="password" placeholder="requesty api key" autocomplete="off" spellcheck="false">
+            <button id="keyToggle" class="btn-ghost" type="button">show</button>
+          </div>
+          <p class="note">
+            everything runs in this browser. the key is saved to this device only and never leaves it except in the request to requesty.
+            downloads are the exact png bytes the api returns, with no re-encoding.
+          </p>
+        </div>
+      </details>
     </section>
-  </div>
+
+    <section class="panel canvas" aria-label="output">
+      <div class="canvas-head">
+        <span class="eyebrow">output</span>
+        <button id="downloadAll" class="btn-ghost" type="button" hidden>download all</button>
+      </div>
+      <div id="canvasEmpty" class="empty">
+        <div class="frame" id="frame"><span class="frame-label mono" id="frameLabel">1:1</span></div>
+        <p class="empty-text" id="emptyText">nothing here yet. write a prompt and hit generate.</p>
+      </div>
+      <div id="output" class="results"></div>
+    </section>
+  </main>
 </div>
 
 <script>
 "use strict";
 
 /* =========================================================================
-   MODEL IDS  -  edit here if a model returns 404
+   MODEL CONFIG
    ========================================================================= */
 const MODELS = {
   "gemini-3-pro": {
@@ -301,31 +514,46 @@ const MODELS = {
 };
 
 const BASE = "https://router.requesty.ai/v1";
+const KEY_STORE = "requesty_image_key";
+const MAX_PARALLEL = 2;   // more than this and the router starts handing back 429s
 
 /* ----- elements ----- */
 const $ = id => document.getElementById(id);
 const els = {
-  key: $("apiKey"), keyToggle: $("keyToggle"),
-  model: $("model"),
+  key: $("apiKey"), keyToggle: $("keyToggle"), keyState: $("keyState"), keyStateText: $("keyStateText"),
+  modelPills: $("modelPills"),
   geminiControls: $("geminiControls"), aspect: $("aspect"), resolution: $("resolution"),
   gptControls: $("gptControls"), gptSize: $("gptSize"), gptQuality: $("gptQuality"),
   customSize: $("customSize"), customW: $("customW"), customH: $("customH"), sizeValid: $("sizeValid"),
   prompt: $("prompt"),
   countGroup: $("countGroup"),
-  drop: $("drop"), fileInput: $("fileInput"), thumbs: $("thumbs"), refCount: $("refCount"),
-  generate: $("generate"), cancel: $("cancel"), status: $("status"), output: $("output")
+  drop: $("drop"), fileInput: $("fileInput"), thumbs: $("thumbs"), refCount: $("refCount"), refNote: $("refNote"),
+  keyBox: $("keyBox"),
+  generate: $("generate"), cancel: $("cancel"), status: $("status"),
+  canvasEmpty: $("canvasEmpty"), frame: $("frame"), frameLabel: $("frameLabel"), emptyText: $("emptyText"),
+  output: $("output"), downloadAll: $("downloadAll")
 };
 
 /* ----- state ----- */
+let modelKey = Object.keys(MODELS)[0];
 let refs = [];            // [{ dataUrl, name }]
-let count = 1;            // number of images to generate
-let controller = null;    // AbortController for the active generation
-const KEY_STORE = "requesty_image_key";
+let count = 1;            // images per run
+let controller = null;    // AbortController for the active run
+let running = false;      // guards against a second run starting on top of the first
+let results = [];         // data urls currently on screen
 
-/* ----- api key persistence ----- */
-try { const k = localStorage.getItem(KEY_STORE); if (k) els.key.value = k; } catch (_) {}
+const currentModel = () => MODELS[modelKey];
+
+/* ----- api key ----- */
+function syncKeyState() {
+  const has = els.key.value.trim().length > 0;
+  els.keyState.classList.toggle("live", has);
+  els.keyStateText.textContent = has ? "key saved" : "no key";
+}
+try { const saved = localStorage.getItem(KEY_STORE); if (saved) els.key.value = saved; } catch (_) {}
 els.key.addEventListener("input", () => {
   try { localStorage.setItem(KEY_STORE, els.key.value.trim()); } catch (_) {}
+  syncKeyState();
 });
 els.keyToggle.addEventListener("click", () => {
   const hidden = els.key.type === "password";
@@ -333,76 +561,92 @@ els.keyToggle.addEventListener("click", () => {
   els.keyToggle.textContent = hidden ? "hide" : "show";
 });
 
-/* ----- count segmented control ----- */
+/* ----- model pills ----- */
+for (const [key, m] of Object.entries(MODELS)) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.dataset.model = key;
+  b.textContent = m.label;
+  b.setAttribute("aria-pressed", String(key === modelKey));
+  els.modelPills.appendChild(b);
+}
+els.modelPills.addEventListener("click", e => {
+  const btn = e.target.closest("button[data-model]");
+  if (!btn || btn.disabled) return;
+  modelKey = btn.dataset.model;
+  els.modelPills.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+  syncControls();
+});
+
+/* ----- count ----- */
 els.countGroup.addEventListener("click", e => {
   const btn = e.target.closest("button[data-count]");
   if (!btn) return;
   count = parseInt(btn.dataset.count, 10);
-  els.countGroup.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+  els.countGroup.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
 });
 
-/* ----- populate model select ----- */
-for (const [k, m] of Object.entries(MODELS)) {
-  const o = document.createElement("option");
-  o.value = k; o.textContent = m.label;
-  els.model.appendChild(o);
-}
-
-function fillSelect(sel, values, selected) {
-  sel.innerHTML = "";
+/* ----- selects. keeps the current choice when the new model also supports it ----- */
+function fillSelect(sel, values, preferred, fallback) {
+  const chosen = values.includes(preferred) ? preferred : fallback;
+  sel.textContent = "";
   for (const v of values) {
     const o = document.createElement("option");
-    o.value = v; o.textContent = v;
-    if (v === selected) o.selected = true;
+    o.value = v;
+    o.textContent = v;
+    if (v === chosen) o.selected = true;
     sel.appendChild(o);
   }
 }
 
-function currentModel() { return MODELS[els.model.value]; }
-
-/* ----- swap controls when model changes ----- */
 function syncControls() {
   const m = currentModel();
   const isGpt = m.endpoint === "images";
+
   els.geminiControls.hidden = isGpt;
   els.gptControls.hidden = !isGpt;
 
   if (isGpt) {
-    fillSelect(els.gptSize, m.sizePresets, "1024x1024");
-    fillSelect(els.gptQuality, m.qualities, m.defaultQuality);
+    fillSelect(els.gptSize, m.sizePresets, els.gptSize.value, "1024x1024");
+    fillSelect(els.gptQuality, m.qualities, els.gptQuality.value, m.defaultQuality);
     toggleCustomSize();
   } else {
-    fillSelect(els.aspect, m.aspectRatios, "1:1");
-    fillSelect(els.resolution, m.resolutions, m.defaultResolution);
+    fillSelect(els.aspect, m.aspectRatios, els.aspect.value, "1:1");
+    fillSelect(els.resolution, m.resolutions, els.resolution.value, m.defaultResolution);
   }
 
-  // trim refs over the new model's limit
-  if (refs.length > m.maxRefs) refs = refs.slice(0, m.maxRefs);
+  if (refs.length > m.maxRefs) {
+    const dropped = refs.length - m.maxRefs;
+    refs = refs.slice(0, m.maxRefs);
+    noteRefs(`${dropped} reference${dropped > 1 ? "s" : ""} removed, ${m.label} takes ${m.maxRefs}`);
+  }
   renderThumbs();
   validateCustomSize();
+  updatePreview();
 }
 
 function toggleCustomSize() {
-  const custom = els.gptSize.value === "custom";
-  els.customSize.hidden = !custom;
+  els.customSize.hidden = els.gptSize.value !== "custom";
   validateCustomSize();
+  updatePreview();
 }
 
-els.model.addEventListener("change", syncControls);
 els.gptSize.addEventListener("change", toggleCustomSize);
-els.customW.addEventListener("input", validateCustomSize);
-els.customH.addEventListener("input", validateCustomSize);
+els.aspect.addEventListener("change", updatePreview);
+els.resolution.addEventListener("change", updatePreview);
+els.customW.addEventListener("input", () => { validateCustomSize(); updatePreview(); });
+els.customH.addEventListener("input", () => { validateCustomSize(); updatePreview(); });
 
-/* ----- gpt custom size validation -----
-   rules: edges multiple of 16, longest <= 3840, long/short ratio <= 3,
-   total pixels between 655360 and 8294400 ----- */
+/* ----- custom size rules for the images endpoint -----
+   edges multiple of 16, longest 3840 or less, long to short ratio 3:1 or less,
+   total pixels between 655,360 and 8,294,400 ----- */
 function customSizeError() {
   const w = parseInt(els.customW.value, 10);
   const h = parseInt(els.customH.value, 10);
   if (!w || !h) return "enter both width and height";
   if (w % 16 !== 0 || h % 16 !== 0) return "both edges must be multiples of 16";
   if (Math.max(w, h) > 3840) return "longest edge must be 3840 or less";
-  if (Math.max(w, h) / Math.min(w, h) > 3) return "long-to-short ratio must be 3:1 or less";
+  if (Math.max(w, h) / Math.min(w, h) > 3) return "long to short ratio must be 3:1 or less";
   const total = w * h;
   if (total < 655360) return "total too small, minimum 655,360 px";
   if (total > 8294400) return "total too large, maximum 8,294,400 px";
@@ -410,99 +654,181 @@ function customSizeError() {
 }
 
 function validateCustomSize() {
-  const isGpt = currentModel().endpoint === "images";
-  if (!isGpt || els.gptSize.value !== "custom") { setGenerateEnabled(true); return; }
+  const needsCheck = currentModel().endpoint === "images" && els.gptSize.value === "custom";
+  if (!needsCheck) { setGenerateEnabled(true); return; }
+
   const err = customSizeError();
   if (err) {
     els.sizeValid.textContent = err;
     els.sizeValid.classList.remove("ok");
     setGenerateEnabled(false);
-  } else {
-    const w = els.customW.value, h = els.customH.value;
-    els.sizeValid.textContent = `${w}x${h} valid, ${(w * h / 1e6).toFixed(2)} MP`;
-    els.sizeValid.classList.add("ok");
-    setGenerateEnabled(true);
+    return;
   }
+  const w = parseInt(els.customW.value, 10);
+  const h = parseInt(els.customH.value, 10);
+  els.sizeValid.textContent = `${w} x ${h} valid, ${(w * h / 1e6).toFixed(2)} MP`;
+  els.sizeValid.classList.add("ok");
+  setGenerateEnabled(true);
 }
 
 function setGenerateEnabled(on) { els.generate.disabled = !on; }
 
+/* ----- the shape preview ----- */
+function previewShape() {
+  const m = currentModel();
+  if (m.endpoint === "chat") {
+    const [w, h] = els.aspect.value.split(":").map(Number);
+    return { ratio: (w && h) ? w / h : 1, label: `${els.aspect.value} at ${els.resolution.value}` };
+  }
+  const size = els.gptSize.value;
+  if (size === "auto") return { ratio: 1, label: "auto size" };
+  if (size === "custom") {
+    const w = parseInt(els.customW.value, 10);
+    const h = parseInt(els.customH.value, 10);
+    if (!w || !h) return { ratio: 1, label: "custom size" };
+    return { ratio: w / h, label: `${w} x ${h}` };
+  }
+  const [w, h] = size.split("x").map(Number);
+  return { ratio: (w && h) ? w / h : 1, label: `${w} x ${h}` };
+}
+
+function updatePreview() {
+  const { ratio, label } = previewShape();
+  els.frame.style.setProperty("--ar", String(ratio));
+  els.frameLabel.textContent = label;
+}
+
 /* ----- reference images ----- */
+let noteTimer = null;
+function noteRefs(text) {
+  els.refNote.textContent = text;
+  els.refNote.hidden = !text;
+  clearTimeout(noteTimer);
+  if (text) noteTimer = setTimeout(() => { els.refNote.hidden = true; }, 6000);
+}
+
 function renderThumbs() {
   const m = currentModel();
-  els.thumbs.innerHTML = "";
+  els.thumbs.textContent = "";
   refs.forEach((r, i) => {
-    const d = document.createElement("div");
-    d.className = "thumb";
+    const cell = document.createElement("div");
+    cell.className = "thumb";
+
     const img = document.createElement("img");
-    img.src = r.dataUrl; img.alt = r.name || "reference";
-    const x = document.createElement("button");
-    x.type = "button"; x.textContent = "\u00d7"; x.title = "remove";
-    x.addEventListener("click", () => { refs.splice(i, 1); renderThumbs(); });
-    d.appendChild(img); d.appendChild(x);
-    els.thumbs.appendChild(d);
+    img.src = r.dataUrl;
+    img.alt = r.name || "reference image";
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "\u00d7";
+    remove.title = "remove";
+    remove.setAttribute("aria-label", `remove ${r.name || "reference"}`);
+    remove.addEventListener("click", () => { refs.splice(i, 1); renderThumbs(); });
+
+    cell.append(img, remove);
+    els.thumbs.appendChild(cell);
   });
+
+  const full = refs.length >= m.maxRefs;
   els.refCount.textContent = `${refs.length} / ${m.maxRefs}`;
-  els.drop.style.opacity = refs.length >= m.maxRefs ? "0.5" : "1";
+  els.drop.classList.toggle("full", full);
+  els.drop.textContent = full ? `at the limit for ${m.label}` : "tap to add, or drop images here";
 }
 
 function readFile(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = () => rej(new Error("could not read " + file.name));
-    r.readAsDataURL(file);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error(`could not read ${file.name}`));
+    reader.readAsDataURL(file);
   });
 }
 
 async function addFiles(fileList) {
   const m = currentModel();
-  const files = Array.from(fileList).filter(f => f.type.startsWith("image/"));
-  for (const f of files) {
-    if (refs.length >= m.maxRefs) break;
-    try { refs.push({ dataUrl: await readFile(f), name: f.name }); }
-    catch (_) {}
+  const all = Array.from(fileList);
+  const images = all.filter(f => f.type.startsWith("image/"));
+  const skippedType = all.length - images.length;
+  let skippedRoom = 0;
+  let failed = 0;
+
+  for (const file of images) {
+    if (refs.length >= m.maxRefs) { skippedRoom++; continue; }
+    try { refs.push({ dataUrl: await readFile(file), name: file.name }); }
+    catch (_) { failed++; }
   }
   renderThumbs();
+
+  const problems = [];
+  if (skippedType) problems.push(`${skippedType} not an image`);
+  if (skippedRoom) problems.push(`${skippedRoom} over the ${m.maxRefs} limit`);
+  if (failed) problems.push(`${failed} failed to read`);
+  noteRefs(problems.length ? `skipped: ${problems.join(", ")}` : "");
 }
 
-els.drop.addEventListener("click", () => els.fileInput.click());
+els.drop.addEventListener("click", () => {
+  if (refs.length >= currentModel().maxRefs) return;
+  els.fileInput.click();
+});
 els.drop.addEventListener("keydown", e => {
-  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); els.fileInput.click(); }
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); els.drop.click(); }
 });
 els.fileInput.addEventListener("change", e => { addFiles(e.target.files); els.fileInput.value = ""; });
-["dragenter","dragover"].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.add("over"); }));
-["dragleave","drop"].forEach(ev => els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.remove("over"); }));
-els.drop.addEventListener("drop", e => { if (e.dataTransfer?.files) addFiles(e.dataTransfer.files); });
+["dragenter","dragover"].forEach(ev =>
+  els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev =>
+  els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.remove("over"); }));
+els.drop.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
 
-/* ----- status ui ----- */
-function showWorking(text) {
+/* ----- status ----- */
+function showWorking(done, total) {
   els.status.hidden = false;
   els.status.className = "status work";
-  els.status.innerHTML = "";
-  const s = document.createElement("span"); s.className = "spin";
-  els.status.appendChild(s);
-  els.status.appendChild(document.createTextNode(text));
+  els.status.textContent = "";
+
+  const row = document.createElement("div");
+  row.className = "work-row";
+  const spinner = document.createElement("span");
+  spinner.className = "spin";
+  const label = total > 1
+    ? `generating, ${done} of ${total} done`
+    : "generating, high resolution takes a while";
+  row.append(spinner, document.createTextNode(label));
+
+  const track = document.createElement("div");
+  track.className = "track";
+  const fill = document.createElement("i");
+  fill.style.width = `${total ? (done / total) * 100 : 0}%`;
+  track.appendChild(fill);
+
+  els.status.append(row, track);
+  els.emptyText.textContent = label;
 }
-function showError(message, codeLine) {
+
+function showMessage(kind, message, code) {
   els.status.hidden = false;
-  els.status.className = "status err";
-  els.status.innerHTML = "";
-  els.status.appendChild(document.createTextNode(message));
-  if (codeLine) {
-    const c = document.createElement("span"); c.className = "code"; c.textContent = codeLine;
-    els.status.appendChild(c);
+  els.status.className = `status ${kind}`;
+  els.status.textContent = message;
+  if (code) {
+    const line = document.createElement("span");
+    line.className = "code";
+    line.textContent = code;
+    els.status.appendChild(line);
   }
 }
-function clearStatus() { els.status.hidden = true; els.status.innerHTML = ""; }
+const showError = (message, code) => showMessage("err", message, code);
+const showWarn = (message, code) => showMessage("warn", message, code);
+function clearStatus() { els.status.hidden = true; els.status.textContent = ""; }
 
-/* ----- map a failed response to a human message ----- */
+/* ----- failure messages ----- */
 const STATUS_HINT = {
-  401: "no api key was sent, paste your requesty key up top",
+  400: "the router rejected the request, check the size and quality values",
+  401: "no api key was sent, paste your requesty key below",
   402: "requesty balance exhausted, top up your account",
   403: "key invalid, expired, or the model is blocked by your access policy",
-  404: "model not found, check the id near the top of this file",
+  404: "model not found, the id may have been renamed or retired on requesty",
   412: "monthly spend limit reached for this key",
+  413: "the request is too large, drop a few reference images and retry",
   429: "rate limited, wait a moment and try again",
   500: "router or provider error, try again",
   502: "provider is down, try again shortly",
@@ -511,19 +837,31 @@ const STATUS_HINT = {
 };
 
 async function parseError(resp) {
-  let origin = "", message = "";
+  let origin = "";
+  let message = "";
   try {
-    const j = await resp.json();
-    origin = j?.error?.origin || "";
-    message = j?.error?.message || "";
+    const body = await resp.json();
+    origin = (body && body.error && body.error.origin) || "";
+    message = (body && body.error && body.error.message) || "";
   } catch (_) {}
+
   const hint = STATUS_HINT[resp.status] || "request failed";
-  const friendly = message || hint;
-  const code = `HTTP ${resp.status}${origin ? " \u00b7 " + origin : ""}${message && hint !== friendly ? " \u00b7 " + hint : ""}`;
-  return { friendly, code };
+  const parts = [`HTTP ${resp.status}`];
+  if (origin) parts.push(origin);
+  if (message) parts.push(hint);
+  return { friendly: message || hint, code: parts.join(" \u00b7 ") };
 }
 
-/* ----- build the request for the active model ----- */
+function networkError(err) {
+  const raw = String((err && err.message) || err);
+  const looksLikeNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw);
+  if (!looksLikeNetwork) return null;
+  const e = new Error("the request never reached requesty. check your connection, then try again.");
+  e.code = raw;
+  return e;
+}
+
+/* ----- request building. shapes match the requesty docs, do not change lightly ----- */
 function buildRequest(m, prompt) {
   if (m.endpoint === "chat") {
     const content = refs.length
@@ -540,7 +878,6 @@ function buildRequest(m, prompt) {
     };
   }
 
-  // gpt images api
   let size = els.gptSize.value;
   if (size === "custom") size = `${els.customW.value}x${els.customH.value}`;
   const common = {
@@ -561,174 +898,272 @@ function buildRequest(m, prompt) {
   return { url: BASE + "/images/generations", body: common };
 }
 
-/* ----- pull image data urls out of either response shape ----- */
+/* ----- response parsing ----- */
 function extractImages(m, json) {
   const out = [];
   if (m.endpoint === "chat") {
-    const imgs = json?.choices?.[0]?.message?.images || [];
-    for (const im of imgs) {
-      const url = im?.image_url?.url;
+    const message = json && json.choices && json.choices[0] && json.choices[0].message;
+    const images = (message && message.images) || [];
+    for (const item of images) {
+      const url = item && item.image_url && item.image_url.url;
       if (url) out.push(url);
     }
+    // some routers put the image in the content parts instead of an images array
+    if (!out.length && message && Array.isArray(message.content)) {
+      for (const part of message.content) {
+        const url = part && part.image_url && part.image_url.url;
+        if (url) out.push(url);
+      }
+    }
   } else {
-    const data = json?.data || [];
-    for (const d of data) {
-      if (d.b64_json) out.push("data:image/png;base64," + d.b64_json);
-      else if (d.url) out.push(d.url);
+    for (const item of (json && json.data) || []) {
+      if (item.b64_json) out.push("data:image/png;base64," + item.b64_json);
+      else if (item.url) out.push(item.url);
     }
   }
   return out;
 }
 
-/* ----- render results + wire downloads ----- */
-function renderResults(urls, m) {
-  els.output.innerHTML = "";
-  els.output.classList.toggle("multi", urls.length > 1);
-  urls.forEach((url, i) => {
-    const box = document.createElement("div");
-    box.className = "result";
+/* ----- one request ----- */
+async function requestImages(m, url, body, key, signal) {
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify(body),
+      signal
+    });
+  } catch (err) {
+    if (err && err.name === "AbortError") throw err;
+    throw networkError(err) || err;
+  }
+
+  if (!resp.ok) {
+    const { friendly, code } = await parseError(resp);
+    const err = new Error(friendly);
+    err.code = code;
+    throw err;
+  }
+
+  const json = await resp.json();
+  const urls = extractImages(m, json);
+  if (!urls.length) {
+    const textBack = json && json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
+    const err = new Error(textBack
+      ? "no image came back, the model replied with text instead"
+      : "no image came back");
+    err.code = typeof textBack === "string" ? textBack.slice(0, 240) : "";
+    throw err;
+  }
+  return urls;
+}
+
+/* ----- results ----- */
+const EMPTY_TEXT = "nothing here yet. write a prompt and hit generate.";
+let pendingClear = false;   // the last run's images stay until the next run produces one
+
+function clearResults() {
+  // object urls are not garbage collected on their own, they have to be handed back
+  for (const r of results) if (r.objectUrl) URL.revokeObjectURL(r.objectUrl);
+  results = [];
+  els.output.textContent = "";
+  els.output.classList.remove("multi");
+  els.downloadAll.hidden = true;
+}
+
+/* a 4K png is tens of megabytes as base64, and the string sticks around in the
+   heap for as long as anything points at it. converting once to a blob drops a
+   third of the weight, leaves a single copy, and gives us something to revoke. */
+function toResult(url, modelId) {
+  if (!url.startsWith("data:")) return { url, modelId };
+  const blob = dataUrlToBlob(url);
+  const objectUrl = URL.createObjectURL(blob);
+  return { url: objectUrl, objectUrl, blob, modelId };
+}
+
+function appendResults(urls, m) {
+  const firstOfRun = pendingClear;
+  if (pendingClear) { clearResults(); pendingClear = false; }
+  els.canvasEmpty.hidden = true;
+
+  for (const url of urls) {
+    const index = results.length;
+    const result = toResult(url, m.id);
+    results.push(result);
+
+    const card = document.createElement("div");
+    card.className = "result";
 
     const img = document.createElement("img");
-    img.src = url; img.alt = "generated image";
-    box.appendChild(img);
+    img.src = result.url;
+    img.alt = "generated image";
 
     const bar = document.createElement("div");
     bar.className = "result-bar";
     const meta = document.createElement("span");
     meta.className = "meta";
     meta.textContent = m.id;
-    const dl = document.createElement("button");
-    dl.type = "button"; dl.textContent = "download png";
-    dl.addEventListener("click", () => downloadPng(url, m, i));
-    bar.appendChild(meta); bar.appendChild(dl);
-    box.appendChild(bar);
+    const download = document.createElement("button");
+    download.type = "button";
+    download.className = "btn-ghost";
+    download.textContent = "download png";
+    download.addEventListener("click", () => downloadImage(results[index], index));
+    bar.append(meta, download);
 
-    els.output.appendChild(box);
-  });
+    card.append(img, bar);
+    els.output.appendChild(card);
+  }
+  els.output.classList.toggle("multi", results.length > 1);
+  els.downloadAll.hidden = results.length < 2;
+
+  // on the stacked layout the output sits below the controls, so bring it into view once
+  if (firstOfRun && window.matchMedia("(max-width: 900px)").matches) {
+    els.output.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
-/* convert a data url to a Blob of the exact bytes (no canvas, no recompression) */
+/* exact bytes out, no canvas, no recompression.
+   the mime comes from literals on purpose. a substring of the data url would be
+   a sliced string in v8, and holding one keeps the entire base64 payload alive. */
 function dataUrlToBlob(dataUrl) {
   const comma = dataUrl.indexOf(",");
-  const header = dataUrl.slice(0, comma);
-  const b64 = dataUrl.slice(comma + 1);
-  const mimeMatch = header.match(/data:(.*?)(;base64)?$/);
-  const mime = mimeMatch ? mimeMatch[1] : "image/png";
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const mime = dataUrl.startsWith("data:image/jpeg") ? "image/jpeg"
+    : dataUrl.startsWith("data:image/webp") ? "image/webp"
+    : "image/png";
+  const binary = atob(dataUrl.slice(comma + 1));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return new Blob([bytes], { type: mime });
 }
 
 function triggerDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-async function downloadPng(url, m, i) {
+async function downloadImage(result, index) {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const safeModel = m.id.replace(/[\/]/g, "_");
-  const name = `${safeModel}_${stamp}${i ? "_" + i : ""}.png`;
+  const safeModel = result.modelId.replace(/\//g, "_");
+  const name = `${safeModel}_${stamp}_${index + 1}.png`;
 
-  if (url.startsWith("data:")) {
-    triggerDownload(dataUrlToBlob(url), name);
-    return;
-  }
-  // remote url fallback: try to fetch the bytes, else open in a tab
+  if (result.blob) { triggerDownload(result.blob, name); return; }
   try {
-    const r = await fetch(url);
-    const blob = await r.blob();
-    triggerDownload(blob, name);
+    const resp = await fetch(result.url);
+    triggerDownload(await resp.blob(), name);
   } catch (_) {
-    window.open(url, "_blank");
+    window.open(result.url, "_blank", "noopener");
   }
 }
 
-/* ----- one request, returns image data urls or throws a friendly error ----- */
-async function requestImages(url, body, key, signal) {
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-    body: JSON.stringify(body),
-    signal
-  });
-  if (!resp.ok) {
-    const { friendly, code } = await parseError(resp);
-    const err = new Error(friendly); err.code = code;
-    throw err;
+els.downloadAll.addEventListener("click", async () => {
+  for (let i = 0; i < results.length; i++) {
+    await downloadImage(results[i], i);
+    await new Promise(r => setTimeout(r, 250)); // browsers throttle rapid-fire downloads
   }
-  const json = await resp.json();
-  const urls = extractImages(currentModel(), json);
-  if (!urls.length) {
-    const textBack = json?.choices?.[0]?.message?.content;
-    const err = new Error("no image came back" + (textBack ? ", the model replied with text instead" : "."));
-    err.code = textBack ? String(textBack).slice(0, 240) : "";
-    throw err;
-  }
-  return urls;
-}
+});
 
-/* ----- toggle generating ui ----- */
+/* ----- run ----- */
+let cancelArmTimer = null;
+
 function setGenerating(on) {
   els.generate.hidden = on;
   els.cancel.hidden = !on;
-  els.model.disabled = on;
+  els.frame.classList.toggle("busy", on);
+  els.modelPills.querySelectorAll("button").forEach(b => { b.disabled = on; });
+
+  clearTimeout(cancelArmTimer);
+  if (on) {
+    // cancel takes over the exact spot generate just left, so a fast double tap
+    // would abort the run it just started. hold it inert for a beat.
+    els.cancel.disabled = true;
+    cancelArmTimer = setTimeout(() => { els.cancel.disabled = false; }, 500);
+  } else {
+    els.cancel.disabled = false;
+    els.emptyText.textContent = EMPTY_TEXT;
+  }
 }
 
-/* ----- generate ----- */
+async function runPool(total, limit, task, signal) {
+  let next = 0;
+  const errors = [];
+  const worker = async () => {
+    while (next < total) {
+      if (signal && signal.aborted) return;
+      const index = next++;
+      try { await task(index); }
+      catch (err) { if (!err || err.name !== "AbortError") errors.push(err); }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, total) }, worker));
+  return errors;
+}
+
 async function generate() {
+  if (running) return;
   const key = els.key.value.trim();
   const prompt = els.prompt.value.trim();
   const m = currentModel();
 
-  if (!key) { showError("paste your requesty api key first."); return; }
-  if (!prompt) { showError("write a prompt first."); return; }
-  if (m.endpoint === "images" && els.gptSize.value === "custom" && customSizeError()) {
-    showError("fix the custom size: " + customSizeError()); return;
+  if (!key) {
+    showError("paste your requesty api key first.");
+    els.keyBox.open = true;
+    els.key.focus();
+    return;
+  }
+  if (!prompt) { showError("write a prompt first."); els.prompt.focus(); return; }
+  if (m.endpoint === "images" && els.gptSize.value === "custom") {
+    const sizeErr = customSizeError();
+    if (sizeErr) { showError("fix the custom size, " + sizeErr); return; }
   }
 
   const { url, body } = buildRequest(m, prompt);
-  const n = count;
+  const total = count;
+  let done = 0;
+  let produced = 0;
 
+  running = true;
   controller = new AbortController();
+  const signal = controller.signal;
+  pendingClear = true;
   setGenerating(true);
-  showWorking(`generating ${n} image${n > 1 ? "s" : ""}, this can take a while at high resolution`);
+  showWorking(0, total);
 
   try {
-    // fire n parallel requests (1 image each) so it works the same on every model
-    const tasks = Array.from({ length: n }, () => requestImages(url, body, key, controller.signal));
-    const settled = await Promise.allSettled(tasks);
+    const errors = await runPool(total, MAX_PARALLEL, async () => {
+      const urls = await requestImages(m, url, body, key, signal);
+      if (signal.aborted) return;
+      appendResults(urls, m);
+      produced += urls.length;
+      done++;
+      showWorking(done, total);
+    }, signal);
 
-    if (controller.signal.aborted) { clearStatus(); return; }
-
-    const urls = [];
-    const errors = [];
-    for (const r of settled) {
-      if (r.status === "fulfilled") urls.push(...r.value);
-      else if (r.reason?.name !== "AbortError") errors.push(r.reason);
-    }
-
-    if (!urls.length) {
-      const e = errors[0] || new Error("request failed");
-      showError(e.message, e.code || "");
+    if (signal.aborted) {
+      if (produced) showWarn(`cancelled, keeping the ${produced} already finished`);
+      else clearStatus();
       return;
     }
 
-    renderResults(urls, m);
+    if (!produced) {
+      const first = errors[0] || new Error("request failed");
+      showError(first.message, first.code || "");
+      return;
+    }
     if (errors.length) {
-      showError(`${errors.length} of ${n} failed, showing the ${urls.length} that worked`, errors[0].message);
-    } else {
-      clearStatus();
+      showWarn(`${errors.length} of ${total} failed, showing the ${produced} that worked`, errors[0].message);
+      return;
     }
-  } catch (e) {
-    if (e?.name !== "AbortError") {
-      showError("request could not be sent. if the console shows a cors error, the browser blocked the direct call and you need a local proxy.",
-                String(e && e.message ? e.message : e));
-    }
+    clearStatus();
   } finally {
+    running = false;
+    pendingClear = false;
     setGenerating(false);
     controller = null;
     validateCustomSize();
@@ -737,8 +1172,16 @@ async function generate() {
 
 els.generate.addEventListener("click", generate);
 els.cancel.addEventListener("click", () => { if (controller) controller.abort(); });
+els.prompt.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !els.generate.disabled && els.generate.hidden === false) {
+    e.preventDefault();
+    generate();
+  }
+});
 
 /* ----- init ----- */
+els.keyBox.open = !els.key.value.trim();   // nothing saved yet, so lead with the key
+syncKeyState();
 syncControls();
 renderThumbs();
 </script>
