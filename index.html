@@ -31,7 +31,7 @@
     --wis-glow:rgba(180,139,255,0.35);
     --on-accent:#180d2c;
     --raise:#261e3c;
-    --panel-clear:rgba(20,16,32,0);
+    --panel-veil:rgba(20,16,32,0.88);
 
     /* signal */
     --rose:#ff8fa8;
@@ -91,7 +91,7 @@
   }
   .mark-name{
     display:block;
-    font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;line-height:1;
+    font-family:var(--display);font-weight:700;font-size:1.3rem;letter-spacing:-0.055em;line-height:1;
     background:linear-gradient(96deg,var(--text) 20%,var(--wis-hi));
     -webkit-background-clip:text;background-clip:text;color:transparent;
   }
@@ -236,7 +236,14 @@
   .actions{
     position:sticky;bottom:0;z-index:2;
     margin:0 calc(var(--s4) * -1);padding:var(--s4) var(--s4) calc(var(--s4) + env(safe-area-inset-bottom));
-    background:linear-gradient(180deg,var(--panel-clear) 0%,var(--panel) 32%);
+    /* solid first so it reads as a bar sitting over the form, not a collision.
+       the blur is an upgrade where supported, never the thing holding it up. */
+    background:var(--panel);
+    border-top:1px solid var(--line);
+    box-shadow:0 -12px 24px -18px rgba(0,0,0,0.9);
+  }
+  @supports (backdrop-filter: blur(1px)){
+    .actions{background:var(--panel-veil);backdrop-filter:blur(14px)}
   }
   .btn-primary{
     width:100%;padding:14px;
