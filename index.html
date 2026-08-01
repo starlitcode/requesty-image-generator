@@ -3,44 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <title>imagegen</title>
+<script>
+  /* runs before first paint, so a saved light theme never flashes dark.
+     the storage key is repeated in the main script below, which cannot be
+     reached from here without blocking on it. keep the two in step. */
+  try {
+    document.documentElement.dataset.theme =
+      localStorage.getItem("requesty_image_theme") === "light" ? "light" : "dark";
+  } catch (_) {
+    document.documentElement.dataset.theme = "dark";
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   /* ==========================================================================
-     A contact sheet under a safelight.
-     Black paper, hairline rules, crop marks instead of borders, mono labelling,
-     and sodium amber as the only colour in the room. Nothing else is tinted, so
-     the generated images are the only thing on the page with colour in it.
+     A contact sheet, in two rooms.
+
+     Dark is the darkroom: black paper lit by the violet of a UV exposure unit,
+     the lamp alt-process printers work under. Light is the same sheet pulled
+     out and laid on a lightbox: white stock, dark ink, the violet surviving in
+     the crop marks and frame numbers.
+
+     Hairline rules, crop marks instead of borders, mono labelling, square
+     corners. Nothing but the accent is tinted, so the generated images stay the
+     only thing on the page carrying real colour.
+
+     Every colour is a token and every token is defined in both themes. Anything
+     hardcoded here is a bug waiting for the other room.
      ========================================================================== */
   :root{
+    color-scheme:dark;
+
     /* surfaces */
-    --paper:#0a0a0b;
-    --sheet:#111112;
-    --cell:#0c0c0e;
-    --raise:#1b1b1f;
-    --rule:rgba(236,228,214,0.10);
-    --rule-2:rgba(236,228,214,0.22);
+    --paper:#0a0910;
+    --sheet:#121019;
+    --cell:#0d0b14;
+    --raise:#1d1a29;
+    --hover:#252131;
+    --rule:rgba(233,228,244,0.10);
+    --rule-2:rgba(233,228,244,0.22);
+    --wash:rgba(233,228,244,0.06);
+    --wash-2:rgba(233,228,244,0.10);
+    --scrim:rgba(8,6,14,0.85);
+    --img-backdrop:#000;
+    --lift:none;                       /* a darkroom has no directional light */
 
-    /* text, warmed a little so it reads as paper rather than screen */
-    --text:#ece7dd;
-    --dim:#9c948a;
-    --faint:#6d665e;
+    /* text. --faint carries every label, so it is held at 4.5:1 on --cell */
+    --text:#e9e4f4;
+    --dim:#9c93b4;
+    --faint:#807a92;
 
-    /* safelight */
-    --safe:#f0a04b;
-    --safe-hi:#ffb86b;
-    --safe-deep:#a86a28;
-    --safe-wash:rgba(240,160,75,0.10);
-    --safe-ring:rgba(240,160,75,0.26);
-    --on-safe:#150c02;
-    --mark:rgba(240,160,75,0.5);
+    /* the lamp */
+    --uv:#b478e8;
+    --uv-hi:#c99cf2;
+    --uv-deep:#7b46a8;
+    --uv-wash:rgba(180,120,232,0.12);
+    --uv-ring:rgba(180,120,232,0.30);
+    --on-uv:#180a2b;
+    --mark:rgba(180,120,232,0.5);
 
-    /* signal. red for a failed exposure, dim amber for a partial one */
-    --red:#e8636b;
-    --red-wash:rgba(232,99,107,0.09);
+    /* signal. red for a failed exposure, dim violet for a partial one */
+    --red:#ff7a8a;
+    --red-wash:rgba(255,122,138,0.10);
 
     /* geometry. square corners, because a sheet of paper has square corners */
     --r:3px;
@@ -59,6 +87,41 @@
 
     --ease:cubic-bezier(0.22,1,0.36,1);
     --ease-smooth:cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* the lightbox. surfaces and ink swap, the violet deepens to hold its
+     contrast on white, and the sheet picks up the shadow that paper on a desk
+     actually casts. */
+  :root[data-theme="light"]{
+    color-scheme:light;
+
+    --paper:#f4f2f7;
+    --sheet:#ffffff;
+    --cell:#f1eef7;
+    --raise:#e8e4f0;
+    --hover:#dcd7e6;
+    --rule:rgba(26,20,36,0.12);
+    --rule-2:rgba(26,20,36,0.26);
+    --wash:rgba(26,20,36,0.05);
+    --wash-2:rgba(26,20,36,0.08);
+    --scrim:rgba(255,255,255,0.9);
+    --img-backdrop:#cfc9db;
+    --lift:0 1px 2px rgba(26,20,36,0.05), 0 10px 28px -20px rgba(26,20,36,0.28);
+
+    --text:#1a1424;
+    --dim:#575070;
+    --faint:#706880;
+
+    --uv:#7431bd;
+    --uv-hi:#8b46d4;
+    --uv-deep:#5d2599;
+    --uv-wash:rgba(116,49,189,0.09);
+    --uv-ring:rgba(116,49,189,0.25);
+    --on-uv:#ffffff;
+    --mark:rgba(116,49,189,0.55);
+
+    --red:#c02637;
+    --red-wash:rgba(192,38,55,0.07);
   }
 
   *{box-sizing:border-box}
@@ -90,7 +153,7 @@
     font-family:var(--mono);font-weight:500;font-size:1rem;
     letter-spacing:0.26em;text-transform:uppercase;line-height:1.2;color:var(--text);
   }
-  .mark-name em{font-style:normal;color:var(--safe)}
+  .mark-name em{font-style:normal;color:var(--uv)}
   .mark-sub{
     display:block;margin-top:7px;
     font-family:var(--mono);font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);
@@ -100,20 +163,33 @@
     padding:6px 10px;border:1px solid var(--rule);border-radius:var(--r-sm);
     font-family:var(--mono);font-size:0.7rem;letter-spacing:0.05em;color:var(--dim);white-space:nowrap;
   }
-  /* the lamp. amber means the room is ready to work in */
+  /* the lamp. lit means the room is ready to work in */
   .key-state .dot{
     width:6px;height:6px;flex:none;
     background:var(--faint);
     transition:background-color .15s var(--ease-smooth),box-shadow .15s var(--ease-smooth);
   }
-  .key-state.live{border-color:var(--safe-deep);color:var(--text)}
-  .key-state.live .dot{background:var(--safe);box-shadow:0 0 0 3px var(--safe-wash)}
+  .key-state.live{border-color:var(--uv-deep);color:var(--text)}
+  .key-state.live .dot{background:var(--uv);box-shadow:0 0 0 3px var(--uv-wash)}
+
+  .masthead-end{display:flex;align-items:center;gap:var(--s2);flex:none}
+  /* a half-filled disc, the dodge-and-burn mark. it reads as contrast without
+     borrowing a sun or a moon, and it needs no icon font to draw. */
+  .theme-toggle{padding:0;width:32px;height:32px;display:grid;place-items:center;flex:none}
+  .theme-toggle .disc{
+    width:13px;height:13px;border-radius:50%;
+    border:1px solid var(--dim);
+    background:linear-gradient(90deg,var(--dim) 0 50%,transparent 50%);
+    transition:border-color .12s var(--ease-smooth),background-image .12s var(--ease-smooth),transform .3s var(--ease);
+  }
+  .theme-toggle:hover .disc{border-color:var(--uv);background-image:linear-gradient(90deg,var(--uv) 0 50%,transparent 50%)}
+  :root[data-theme="light"] .theme-toggle .disc{transform:rotate(180deg)}
 
   /* ---------- layout ---------- */
   .grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:var(--s4);align-items:start}
   @media (max-width:900px){ .grid{grid-template-columns:1fr} }
 
-  .panel{border:1px solid var(--rule);border-radius:var(--r);background:var(--sheet)}
+  .panel{border:1px solid var(--rule);border-radius:var(--r);background:var(--sheet);box-shadow:var(--lift)}
   .controls{padding:var(--s5) var(--pad) var(--pad)}
   @media (min-width:901px){ .canvas{position:sticky;top:var(--s4)} }
   .canvas{padding:var(--pad);min-height:340px}
@@ -141,13 +217,15 @@
   input::placeholder,textarea::placeholder{color:var(--faint)}
   input:hover,select:hover,textarea:hover{border-color:var(--rule-2)}
   input:focus-visible,select:focus-visible,textarea:focus-visible,
-  input:focus,select:focus,textarea:focus{border-color:var(--safe);box-shadow:0 0 0 2px var(--safe-ring)}
+  input:focus,select:focus,textarea:focus{border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
   textarea{min-height:120px;resize:vertical;line-height:1.55}
-  /* arrow stroke is --dim written out, since a data uri cannot read a variable */
   select{
     appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:32px;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%239c948a' stroke-width='1.3' stroke-linecap='round'/></svg>");
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%239c93b4' stroke-width='1.3' stroke-linecap='round'/></svg>");
     background-repeat:no-repeat;background-position:right 11px center;
+  }
+  :root[data-theme="light"] select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%23575070' stroke-width='1.3' stroke-linecap='round'/></svg>");
   }
 
   button{
@@ -157,15 +235,15 @@
     cursor:pointer;
     transition:background-color .12s var(--ease-smooth),border-color .12s var(--ease-smooth),color .12s var(--ease-smooth),transform .12s var(--ease);
   }
-  button:hover{background:#232328;border-color:var(--rule-2)}
+  button:hover{background:var(--hover);border-color:var(--rule-2)}
   button:active{transform:translateY(1px)}
-  button:focus-visible{outline:none;border-color:var(--safe);box-shadow:0 0 0 2px var(--safe-ring)}
+  button:focus-visible{outline:none;border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
   button:disabled{opacity:.38;cursor:not-allowed;transform:none}
   .btn-ghost{
     padding:6px 10px;background:transparent;
     font-family:var(--mono);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);
   }
-  .btn-ghost:hover{background:rgba(236,228,214,0.05);color:var(--text)}
+  .btn-ghost:hover{background:var(--wash);color:var(--text)}
 
   /* model list. one row per model with a checkbox mark, the way you tick a frame
      on a proof sheet. three long labels do not survive being squeezed side by side. */
@@ -182,8 +260,8 @@
     transition:background-color .12s var(--ease-smooth),border-color .12s var(--ease-smooth);
   }
   .pills button:active{transform:none}
-  .pills button[aria-pressed="true"]{border-color:var(--safe-deep);background:var(--safe-wash);color:var(--text)}
-  .pills button[aria-pressed="true"]::before{background:var(--safe);border-color:var(--safe)}
+  .pills button[aria-pressed="true"]{border-color:var(--uv-deep);background:var(--uv-wash);color:var(--text)}
+  .pills button[aria-pressed="true"]::before{background:var(--uv);border-color:var(--uv)}
 
   /* frame counter. one connected strip, divided by rules rather than gaps */
   .seg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--cell)}
@@ -193,13 +271,13 @@
     font-family:var(--mono);font-size:0.9rem;color:var(--dim);
   }
   .seg button:first-child{box-shadow:none}
-  .seg button:hover{background:rgba(236,228,214,0.05)}
+  .seg button:hover{background:var(--wash)}
   .seg button:active{transform:none}
   .seg button[aria-pressed="true"],
-  .seg button[aria-pressed="true"]:hover{background:var(--safe);color:var(--on-safe);box-shadow:none}
+  .seg button[aria-pressed="true"]:hover{background:var(--uv);color:var(--on-uv);box-shadow:none}
   .seg button[aria-pressed="true"] + button{box-shadow:none}
   /* inset so the connected strip does not clip the ring */
-  .seg button:focus-visible{box-shadow:none;outline:2px solid var(--safe);outline-offset:-2px}
+  .seg button:focus-visible{box-shadow:none;outline:2px solid var(--uv);outline-offset:-2px}
 
   /* references */
   .drop{
@@ -211,9 +289,9 @@
     cursor:pointer;
     transition:border-color .12s var(--ease-smooth),background-color .12s var(--ease-smooth),color .12s var(--ease-smooth);
   }
-  .drop:hover{border-color:var(--safe-deep);color:var(--text)}
-  .drop.over{border-color:var(--safe);background:var(--safe-wash);color:var(--text)}
-  .drop:focus-visible{outline:none;border-color:var(--safe);box-shadow:0 0 0 2px var(--safe-ring)}
+  .drop:hover{border-color:var(--uv-deep);color:var(--text)}
+  .drop.over{border-color:var(--uv);background:var(--uv-wash);color:var(--text)}
+  .drop:focus-visible{outline:none;border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
   .drop.full{cursor:not-allowed;opacity:.5}
   .count-tag{float:right;font-family:var(--mono);font-size:0.68rem;color:var(--faint);letter-spacing:0.06em}
   .thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
@@ -225,16 +303,22 @@
   .thumb img{width:100%;height:100%;display:block;object-fit:cover}
   .thumb button{
     position:absolute;top:2px;right:2px;width:19px;height:19px;padding:0;
-    border-color:transparent;background:rgba(6,6,7,0.85);
+    border-color:transparent;background:var(--scrim);
     font-size:0.72rem;line-height:1;color:var(--text);
   }
-  .thumb button:hover{background:var(--red);border-color:var(--red);color:var(--on-safe)}
+  .thumb button:hover{background:var(--red);border-color:var(--red);color:var(--on-uv)}
   @media (pointer:coarse){
     .thumb{width:68px;height:68px}
     .thumb button{width:25px;height:25px;font-size:0.85rem}
     /* fingers need more than a text-sized target */
     .btn-ghost{padding:10px 13px}
     .disclosure summary{padding:8px 0}
+    .theme-toggle{width:40px;height:40px}
+    .drop{padding:19px 14px}
+    /* the model rows and the count strip land at 37 and 38px on a phone,
+       just under a comfortable target */
+    .pills button{padding:12px}
+    .seg button{padding:13px 0}
   }
 
   /* custom size validity */
@@ -252,14 +336,14 @@
   }
   .btn-primary{
     width:100%;padding:14px;
-    border-color:var(--safe);background:var(--safe);
+    border-color:var(--uv);background:var(--uv);
     font-family:var(--mono);font-weight:500;font-size:0.86rem;
-    letter-spacing:0.2em;text-transform:uppercase;color:var(--on-safe);
+    letter-spacing:0.2em;text-transform:uppercase;color:var(--on-uv);
   }
-  .btn-primary:hover{background:var(--safe-hi);border-color:var(--safe-hi)}
+  .btn-primary:hover{background:var(--uv-hi);border-color:var(--uv-hi)}
   .btn-cancel{
     width:100%;padding:14px;
-    border-color:rgba(232,99,107,0.4);background:transparent;
+    border-color:var(--red);background:transparent;
     font-family:var(--mono);font-size:0.86rem;
     letter-spacing:0.2em;text-transform:uppercase;color:var(--red);
   }
@@ -269,11 +353,11 @@
   .status{margin-top:var(--s3);font-size:0.84rem}
   .status.work{color:var(--dim)}
   .status .work-row{display:flex;align-items:center;gap:var(--s2)}
-  .track{height:2px;margin-top:10px;background:rgba(236,228,214,0.09);overflow:hidden}
-  .track i{display:block;height:100%;background:var(--safe);transition:width .3s var(--ease)}
+  .track{height:2px;margin-top:10px;background:var(--wash-2);overflow:hidden}
+  .track i{display:block;height:100%;background:var(--uv);transition:width .3s var(--ease)}
   .spin{
     width:12px;height:12px;flex:none;
-    border:2px solid rgba(236,228,214,0.15);border-top-color:var(--safe);border-radius:50%;
+    border:2px solid var(--wash-2);border-top-color:var(--uv);border-radius:50%;
     animation:spin .7s linear infinite;
   }
   /* a marked-up note in the margin, not a boxed alert */
@@ -282,7 +366,7 @@
     animation:rise .22s var(--ease) both;
   }
   .status.err{border-color:var(--red);background:var(--red-wash);color:var(--red)}
-  .status.warn{border-color:var(--safe-deep);background:rgba(236,228,214,0.04);color:var(--dim)}
+  .status.warn{border-color:var(--uv-deep);background:var(--wash);color:var(--dim)}
   .status .code{
     display:block;margin-top:5px;
     font-family:var(--mono);font-size:0.7rem;line-height:1.5;color:var(--faint);
@@ -305,7 +389,7 @@
     transform:rotate(-45deg);transition:transform .18s var(--ease);
   }
   .disclosure[open] summary::before{transform:rotate(45deg)}
-  .disclosure summary:focus-visible{outline:none;color:var(--safe)}
+  .disclosure summary:focus-visible{outline:none;color:var(--uv)}
   .disclosure-body{margin-top:var(--s3)}
   .key-row{display:flex;gap:var(--s2)}
   .key-row input{flex:1;min-width:0}
@@ -344,7 +428,7 @@
   .frame-label{font-size:0.72rem;letter-spacing:0.08em;color:var(--dim)}
   .frame.busy::after{
     content:"";position:absolute;inset:0;
-    background:linear-gradient(100deg,transparent 20%,var(--safe-wash) 50%,transparent 80%);
+    background:linear-gradient(100deg,transparent 20%,var(--uv-wash) 50%,transparent 80%);
     animation:sweep 1.5s linear infinite;
   }
   .empty-text{margin:0;max-width:34ch;text-align:center;font-size:0.84rem;color:var(--faint)}
@@ -357,14 +441,14 @@
   .result img{
     display:block;width:auto;max-width:100%;height:auto;max-height:78vh;margin:0 auto;
     border:1px solid var(--rule);border-radius:var(--r-sm);
-    background:#000;
+    background:var(--img-backdrop);
   }
   .result-bar{
     display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;
     margin-top:10px;
   }
   /* frame number, the way a proof sheet indexes its exposures */
-  .frame-no{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.06em;color:var(--safe)}
+  .frame-no{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.06em;color:var(--uv)}
   .meta{
     font-family:var(--mono);font-size:0.68rem;color:var(--faint);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -375,6 +459,13 @@
   @keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
   @keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 
+  /* a theme swap should land all at once. without this every element runs its
+     own transition at its own duration and the page changes in ragged stages.
+     !important is load-bearing here: it has to beat each element's own rule. */
+  :root.theme-swap *,:root.theme-swap *::before,:root.theme-swap *::after{
+    transition:none !important;
+  }
+
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
   }
@@ -382,6 +473,24 @@
   @media (max-width:900px){
     .wrap{padding-top:var(--s4);padding-bottom:var(--s5)}
     .masthead{align-items:center}
+    /* the canvas is the point on a phone, so give it the room the sticky
+       desktop column does not need */
+    .canvas{min-height:0}
+    .empty{padding:var(--s4) 0}
+  }
+
+  /* narrow phones. the masthead is the only row that genuinely runs out of
+     width: wordmark plus key chip plus toggle. tighten the tracking rather
+     than wrap, so the header stays one line. */
+  @media (max-width:420px){
+    .mark-name{font-size:0.92rem;letter-spacing:0.18em}
+    .mark-sub{font-size:0.62rem;letter-spacing:0.12em}
+    .key-state{padding:6px 8px;font-size:0.65rem;gap:6px}
+    /* retuning the token keeps the panels and the action bar's bleed in step */
+    :root{--pad:12px}
+    .controls{padding-top:var(--s4)}
+    .duo{gap:var(--s2)}
+    .result-bar{gap:var(--s2)}
   }
 
   /* last, so it beats any display rule of equal weight such as .empty */
@@ -396,8 +505,13 @@
       <span class="mark-name">image<em>gen</em></span>
       <span class="mark-sub">requesty router</span>
     </div>
-    <div class="key-state" id="keyState">
-      <span class="dot"></span><span id="keyStateText">no key</span>
+    <div class="masthead-end">
+      <div class="key-state" id="keyState">
+        <span class="dot"></span><span id="keyStateText">no key</span>
+      </div>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="switch to light">
+        <span class="disc" aria-hidden="true"></span>
+      </button>
     </div>
   </header>
 
@@ -545,12 +659,14 @@ const MODELS = {
 
 const BASE = "https://router.requesty.ai/v1";
 const KEY_STORE = "requesty_image_key";
+const THEME_STORE = "requesty_image_theme";   // also read by the pre-paint script in <head>
 const MAX_PARALLEL = 2;   // more than this and the router starts handing back 429s
 
 /* ----- elements ----- */
 const $ = id => document.getElementById(id);
 const els = {
   key: $("apiKey"), keyToggle: $("keyToggle"), keyState: $("keyState"), keyStateText: $("keyStateText"),
+  themeToggle: $("themeToggle"),
   modelPills: $("modelPills"),
   geminiControls: $("geminiControls"), aspect: $("aspect"), resolution: $("resolution"),
   gptControls: $("gptControls"), gptSize: $("gptSize"), gptQuality: $("gptQuality"),
@@ -573,6 +689,25 @@ let running = false;      // guards against a second run starting on top of the 
 let results = [];         // data urls currently on screen
 
 const currentModel = () => MODELS[modelKey];
+
+/* ----- theme -----
+   dark is the default and stays the default. the pre-paint script in <head>
+   has already put the saved choice on the root, so this only has to label the
+   control and handle the flip. */
+function setTheme(next, remember) {
+  const root = document.documentElement;
+  if (remember) {
+    root.classList.add("theme-swap");
+    // two frames: one for the swap to paint with transitions off, one to restore
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theme-swap")));
+  }
+  root.dataset.theme = next;
+  els.themeToggle.setAttribute("aria-label", next === "light" ? "switch to dark" : "switch to light");
+  if (remember) { try { localStorage.setItem(THEME_STORE, next); } catch (_) {} }
+}
+els.themeToggle.addEventListener("click", () => {
+  setTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light", true);
+});
 
 /* ----- api key ----- */
 function syncKeyState() {
@@ -1233,6 +1368,7 @@ els.prompt.addEventListener("keydown", e => {
 });
 
 /* ----- init ----- */
+setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark", false);
 els.keyBox.open = !els.key.value.trim();   // nothing saved yet, so lead with the key
 syncKeyState();
 syncControls();
