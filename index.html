@@ -18,110 +18,108 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ==========================================================================
-     A contact sheet, in two rooms.
+     Laid out like a component datasheet.
 
-     Dark is the darkroom: black paper lit by the violet of a UV exposure unit,
-     the lamp alt-process printers work under. Light is the same sheet pulled
-     out and laid on a lightbox: white stock, dark ink, the violet surviving in
-     the crop marks and frame numbers.
+     Every parameter is a row: a label on the left, a dotted leader running
+     across, the control on the right. Section titles sit at the left end of a
+     rule that runs to the edge. That one row shape is the whole vocabulary, and
+     it repeats in the settings, in the result captions, and under the key.
 
-     Hairline rules, crop marks instead of borders, mono labelling, square
-     corners. Nothing but the accent is tinted, so the generated images stay the
-     only thing on the page carrying real colour.
+     The band across the top is for writing and setting up. Everything below it
+     is the image, at the full width of the page, because the image is the
+     output and a permanent sidebar costs it 380px it never gets back.
 
-     Every colour is a token and every token is defined in both themes. Anything
-     hardcoded here is a bug waiting for the other room.
+     Violet marks two things only: what is currently selected, and what is about
+     to act. Nothing else on the page is tinted, so the generated images carry
+     all the real colour.
+
+     Depth is one mechanism, hairline borders. No shadows, no fills pretending
+     to be elevation.
+
+     Every colour is a token and every token is defined in both themes.
+     A hardcoded colour here is a bug waiting for the other theme.
      ========================================================================== */
   :root{
     color-scheme:dark;
 
     /* surfaces */
-    --paper:#0a0910;
-    --sheet:#121019;
-    --cell:#0d0b14;
-    --raise:#1d1a29;
-    --hover:#252131;
-    --rule:rgba(233,228,244,0.10);
-    --rule-2:rgba(233,228,244,0.22);
-    --wash:rgba(233,228,244,0.06);
-    --wash-2:rgba(233,228,244,0.10);
-    --scrim:rgba(8,6,14,0.85);
+    --paper:#0b0810;
+    --cell:#16131f;
+    --raise:#1e1a2b;
+    --hover:#272235;
+    --rule:rgba(230,225,245,0.10);
+    --rule-2:rgba(230,225,245,0.20);
+    --wash:rgba(230,225,245,0.05);
+    --wash-2:rgba(230,225,245,0.10);
+    --scrim:rgba(9,6,16,0.86);
     --img-backdrop:#000;
-    --lift:none;                       /* a darkroom has no directional light */
 
-    /* text. --faint carries every label, so it is held at 4.5:1 on --cell */
-    --text:#e9e4f4;
-    --dim:#9c93b4;
-    --faint:#807a92;
+    /* text. --faint carries every label, so it is held above 4.5:1 on --cell */
+    --text:#ece8f6;
+    --dim:#a49bbd;
+    --faint:#8a82a0;
 
-    /* the lamp */
-    --uv:#b478e8;
-    --uv-hi:#c99cf2;
-    --uv-deep:#7b46a8;
-    --uv-wash:rgba(180,120,232,0.12);
-    --uv-ring:rgba(180,120,232,0.30);
-    --on-uv:#180a2b;
-    --mark:rgba(180,120,232,0.5);
+    /* the accent */
+    --uv:#a97ff2;
+    --uv-hi:#c0a0f7;
+    --uv-deep:#7a4fc0;
+    --uv-wash:rgba(169,127,242,0.12);
+    --uv-ring:rgba(169,127,242,0.32);
+    --on-uv:#14071f;
 
-    /* signal. red for a failed exposure, dim violet for a partial one */
-    --red:#ff7a8a;
-    --red-wash:rgba(255,122,138,0.10);
+    /* signal */
+    --red:#ff8395;
+    --red-wash:rgba(255,131,149,0.10);
+    --red-line:rgba(255,131,149,0.45);
 
-    /* geometry. square corners, because a sheet of paper has square corners */
-    --r:3px;
-    --r-sm:2px;
+    /* geometry */
+    --r-sm:3px;
     --ar:1;
 
     /* spacing scale */
-    --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
-    /* controls inset. the sticky action bar bleeds by exactly this, so the two
-       can never drift apart */
-    --pad:18px;
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
 
-    /* type: mono carries every label, sans carries only prose */
-    --body:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    /* type. mono carries labels and every number, sans carries prose */
+    --body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 
     --ease:cubic-bezier(0.22,1,0.36,1);
     --ease-smooth:cubic-bezier(0.4,0,0.2,1);
   }
 
-  /* the lightbox. surfaces and ink swap, the violet deepens to hold its
-     contrast on white, and the sheet picks up the shadow that paper on a desk
-     actually casts. */
+  /* the light sheet. surfaces and ink swap and the violet deepens to hold its
+     contrast on white. not an inversion: the greys are picked again. */
   :root[data-theme="light"]{
     color-scheme:light;
 
-    --paper:#f4f2f7;
-    --sheet:#ffffff;
-    --cell:#f1eef7;
-    --raise:#e8e4f0;
-    --hover:#dcd7e6;
-    --rule:rgba(26,20,36,0.12);
-    --rule-2:rgba(26,20,36,0.26);
-    --wash:rgba(26,20,36,0.05);
-    --wash-2:rgba(26,20,36,0.08);
+    --paper:#f6f4fa;
+    --cell:#ffffff;
+    --raise:#ece8f6;
+    --hover:#ddd6ec;
+    --rule:rgba(28,20,42,0.13);
+    --rule-2:rgba(28,20,42,0.26);
+    --wash:rgba(28,20,42,0.05);
+    --wash-2:rgba(28,20,42,0.09);
     --scrim:rgba(255,255,255,0.9);
-    --img-backdrop:#cfc9db;
-    --lift:0 1px 2px rgba(26,20,36,0.05), 0 10px 28px -20px rgba(26,20,36,0.28);
+    --img-backdrop:#d5cfe4;
 
-    --text:#1a1424;
-    --dim:#575070;
-    --faint:#706880;
+    --text:#191122;
+    --dim:#574d6c;
+    --faint:#6d6383;
 
-    --uv:#7431bd;
-    --uv-hi:#8b46d4;
-    --uv-deep:#5d2599;
-    --uv-wash:rgba(116,49,189,0.09);
-    --uv-ring:rgba(116,49,189,0.25);
+    --uv:#6d28c9;
+    --uv-hi:#5b1fae;
+    --uv-deep:#8c5ad8;
+    --uv-wash:rgba(109,40,201,0.08);
+    --uv-ring:rgba(109,40,201,0.28);
     --on-uv:#ffffff;
-    --mark:rgba(116,49,189,0.55);
 
-    --red:#c02637;
-    --red-wash:rgba(192,38,55,0.07);
+    --red:#c2192c;
+    --red-wash:rgba(194,25,44,0.07);
+    --red-line:rgba(194,25,44,0.4);
   }
 
   *{box-sizing:border-box}
@@ -132,83 +130,107 @@
     color:var(--text);
     font-family:var(--body);
     font-size:16px;
-    line-height:1.5;
+    line-height:1.55;
     -webkit-text-size-adjust:100%;
     -webkit-font-smoothing:antialiased;
   }
 
   .wrap{
-    max-width:1240px;margin:0 auto;
-    padding:var(--s5) max(var(--s4),env(safe-area-inset-right)) var(--s6) max(var(--s4),env(safe-area-inset-left));
+    max-width:1180px;margin:0 auto;
+    padding:var(--s5) max(var(--s5),env(safe-area-inset-right)) var(--s7) max(var(--s5),env(safe-area-inset-left));
   }
 
-  /* ---------- masthead ---------- */
-  .masthead{
-    display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s4);
-    padding-bottom:var(--s3);margin-bottom:var(--s5);
+  /* ---------- topbar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:var(--s4);
+    padding-bottom:var(--s4);margin-bottom:var(--s6);
     border-bottom:1px solid var(--rule);
   }
   .mark-name{
     display:block;
     font-family:var(--mono);font-weight:500;font-size:1rem;
-    letter-spacing:0.26em;text-transform:uppercase;line-height:1.2;color:var(--text);
+    letter-spacing:0.22em;text-transform:lowercase;line-height:1.2;color:var(--text);
   }
   .mark-name em{font-style:normal;color:var(--uv)}
   .mark-sub{
-    display:block;margin-top:7px;
-    font-family:var(--mono);font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);
+    display:block;margin-top:6px;
+    font-family:var(--mono);font-size:0.66rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);
   }
-  .key-state{
+  .topbar-end{display:flex;align-items:center;gap:var(--s2);flex:none}
+
+  /* the key chip is a button: it opens the panel that fixes what it reports */
+  .chip{
     display:flex;align-items:center;gap:var(--s2);
-    padding:6px 10px;border:1px solid var(--rule);border-radius:var(--r-sm);
-    font-family:var(--mono);font-size:0.7rem;letter-spacing:0.05em;color:var(--dim);white-space:nowrap;
+    padding:7px 11px;
+    border:1px solid var(--rule);border-radius:var(--r-sm);background:transparent;
+    font-family:var(--mono);font-size:0.68rem;letter-spacing:0.06em;color:var(--dim);white-space:nowrap;
   }
-  /* the lamp. lit means the room is ready to work in */
-  .key-state .dot{
-    width:6px;height:6px;flex:none;
-    background:var(--faint);
+  .chip .dot{
+    width:6px;height:6px;flex:none;background:var(--faint);
     transition:background-color .15s var(--ease-smooth),box-shadow .15s var(--ease-smooth);
   }
-  .key-state.live{border-color:var(--uv-deep);color:var(--text)}
-  .key-state.live .dot{background:var(--uv);box-shadow:0 0 0 3px var(--uv-wash)}
+  .chip.live{border-color:var(--uv-deep);color:var(--text)}
+  .chip.live .dot{background:var(--uv);box-shadow:0 0 0 3px var(--uv-wash)}
 
-  .masthead-end{display:flex;align-items:center;gap:var(--s2);flex:none}
-  /* a half-filled disc, the dodge-and-burn mark. it reads as contrast without
-     borrowing a sun or a moon, and it needs no icon font to draw. */
-  .theme-toggle{padding:0;width:32px;height:32px;display:grid;place-items:center;flex:none}
+  /* a square half filled, the contrast mark. it reads as light and dark
+     without borrowing a sun or a moon, and it needs no icon font. */
+  .theme-toggle{padding:0;width:32px;height:32px;display:grid;place-items:center;flex:none;background:transparent}
   .theme-toggle .disc{
-    width:13px;height:13px;border-radius:50%;
+    width:12px;height:12px;
     border:1px solid var(--dim);
     background:linear-gradient(90deg,var(--dim) 0 50%,transparent 50%);
-    transition:border-color .12s var(--ease-smooth),background-image .12s var(--ease-smooth),transform .3s var(--ease);
+    transition:border-color .12s var(--ease-smooth),background-image .12s var(--ease-smooth),transform .35s var(--ease);
   }
   .theme-toggle:hover .disc{border-color:var(--uv);background-image:linear-gradient(90deg,var(--uv) 0 50%,transparent 50%)}
   :root[data-theme="light"] .theme-toggle .disc{transform:rotate(180deg)}
 
-  /* ---------- layout ---------- */
-  .grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:var(--s4);align-items:start}
-  @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+  /* ---------- the band ---------- */
+  .band{
+    display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);
+    column-gap:var(--s7);align-items:start;
+    padding-bottom:var(--s6);margin-bottom:var(--s6);
+    border-bottom:1px solid var(--rule);
+  }
+  .compose{grid-column:1;grid-row:1;min-width:0}
+  .settings{grid-column:2;grid-row:1 / span 2;min-width:0}
+  .run{grid-column:1;grid-row:2;margin-top:var(--s5)}
+  /* stacked, the order is the order you work in: write, attach, choose, run */
+  @media (max-width:860px){
+    .band{grid-template-columns:1fr;row-gap:var(--s6)}
+    .compose,.settings,.run{grid-column:1;grid-row:auto}
+    .run{margin-top:0}
+  }
 
-  .panel{border:1px solid var(--rule);border-radius:var(--r);background:var(--sheet);box-shadow:var(--lift)}
-  .controls{padding:var(--s5) var(--pad) var(--pad)}
-  @media (min-width:901px){ .canvas{position:sticky;top:var(--s4)} }
-  .canvas{padding:var(--pad);min-height:340px}
+  /* a fieldset so one flag can lock every control in it while a run is up */
+  .params{min-width:0;border:0;margin:0;padding:0}
 
-  /* ---------- shared bits ---------- */
-  .block{margin-bottom:var(--s5)}
-  .block:last-child{margin-bottom:0}
+  /* ---------- the row, this page's one repeating shape ---------- */
+  /* section title at the left of a rule that runs to the edge */
+  .sec{display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s4)}
+  .sec + *{margin-top:0}
+  .sec .lead{flex:1 1 auto;min-width:var(--s5);height:0;border-bottom:1px solid var(--rule)}
   .eyebrow{
-    display:block;margin-bottom:10px;
-    font-family:var(--mono);font-size:0.68rem;
+    flex:none;
+    font-family:var(--mono);font-size:0.66rem;font-weight:500;
     letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);
   }
-  .hint{margin-top:var(--s2);font-size:0.74rem;line-height:1.45;color:var(--faint)}
-  .duo{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
-  .mono{font-family:var(--mono);letter-spacing:0}
+  .tally{flex:none;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.06em;color:var(--faint)}
 
-  input,select,textarea,button{font-family:var(--body);font-size:0.95rem;color:var(--text)}
+  /* label, dotted leader, control. the settings, the captions, and the key row
+     all use it, which is what holds the page together */
+  .row{display:flex;align-items:center;gap:var(--s3);padding:var(--s2) 0}
+  .row-label{flex:none;font-size:0.86rem;color:var(--dim)}
+  .row .lead{flex:1 1 auto;min-width:var(--s4);height:0;border-bottom:1px dotted var(--rule-2)}
+  .row-field{flex:none;width:158px}
+
+  .hint{margin:var(--s2) 0 0;font-size:0.74rem;line-height:1.45;color:var(--faint)}
+  .mono{font-family:var(--mono);letter-spacing:0}
+  .stack{margin-top:var(--s6)}
+
+  /* ---------- controls ---------- */
+  input,select,textarea,button{font-family:var(--body);font-size:0.9rem;color:var(--text)}
   input,select,textarea{
-    width:100%;padding:10px 12px;
+    width:100%;padding:9px 11px;
     border:1px solid var(--rule);border-radius:var(--r-sm);
     background:var(--cell);
     outline:none;
@@ -218,41 +240,48 @@
   input:hover,select:hover,textarea:hover{border-color:var(--rule-2)}
   input:focus-visible,select:focus-visible,textarea:focus-visible,
   input:focus,select:focus,textarea:focus{border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
-  textarea{min-height:120px;resize:vertical;line-height:1.55}
   select{
-    appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:32px;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%239c93b4' stroke-width='1.3' stroke-linecap='round'/></svg>");
-    background-repeat:no-repeat;background-position:right 11px center;
+    appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:30px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%23a49bbd' stroke-width='1.3' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 10px center;
   }
   :root[data-theme="light"] select{
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%23575070' stroke-width='1.3' stroke-linecap='round'/></svg>");
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%23574d6c' stroke-width='1.3' stroke-linecap='round'/></svg>");
+  }
+  :disabled{opacity:.4;cursor:not-allowed}
+
+  /* the prompt is the headline field, so it is set larger than anything else
+     and given the room to hold a paragraph without scrolling */
+  .prompt-field{
+    min-height:150px;resize:vertical;
+    padding:var(--s3) var(--s4);
+    font-size:1rem;line-height:1.6;
   }
 
   button{
     border:1px solid var(--rule);border-radius:var(--r-sm);
-    padding:10px 14px;
+    padding:9px 13px;
     background:var(--raise);
     cursor:pointer;
-    transition:background-color .12s var(--ease-smooth),border-color .12s var(--ease-smooth),color .12s var(--ease-smooth),transform .12s var(--ease);
+    transition:background-color .12s var(--ease-smooth),border-color .12s var(--ease-smooth),color .12s var(--ease-smooth),transform .1s var(--ease);
   }
-  button:hover{background:var(--hover);border-color:var(--rule-2)}
-  button:active{transform:translateY(1px)}
+  button:hover:not(:disabled){background:var(--hover);border-color:var(--rule-2)}
+  button:active:not(:disabled){transform:translateY(1px)}
   button:focus-visible{outline:none;border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
-  button:disabled{opacity:.38;cursor:not-allowed;transform:none}
+  button:disabled{transform:none}
   .btn-ghost{
-    padding:6px 10px;background:transparent;
-    font-family:var(--mono);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);
+    flex:none;padding:5px 9px;background:transparent;
+    font-family:var(--mono);font-size:0.66rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);
   }
-  .btn-ghost:hover{background:var(--wash);color:var(--text)}
+  .btn-ghost:hover:not(:disabled){background:var(--wash);color:var(--text);border-color:var(--rule)}
 
-  /* model list. one row per model with a checkbox mark, the way you tick a frame
-     on a proof sheet. three long labels do not survive being squeezed side by side. */
-  .pills{display:grid;gap:6px}
+  /* model list. one row per model, ticked. three long labels do not survive
+     being squeezed side by side in a narrow column. */
+  .pills{display:grid;gap:var(--s1)}
   .pills button{
     display:flex;align-items:center;gap:10px;width:100%;
-    padding:10px 12px;
-    background:var(--cell);
-    font-family:var(--mono);font-size:0.8rem;letter-spacing:0.02em;color:var(--dim);text-align:left;
+    padding:10px 12px;background:var(--cell);
+    font-family:var(--mono);font-size:0.78rem;letter-spacing:0.01em;color:var(--dim);text-align:left;
   }
   .pills button::before{
     content:"";width:8px;height:8px;flex:none;
@@ -263,29 +292,29 @@
   .pills button[aria-pressed="true"]{border-color:var(--uv-deep);background:var(--uv-wash);color:var(--text)}
   .pills button[aria-pressed="true"]::before{background:var(--uv);border-color:var(--uv)}
 
-  /* frame counter. one connected strip, divided by rules rather than gaps */
-  .seg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--cell)}
+  /* count. one connected strip divided by rules rather than gaps */
+  .seg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--cell);overflow:hidden}
   .seg button{
-    border:0;border-radius:0;padding:11px 0;
+    border:0;border-radius:0;padding:8px 0;
     background:transparent;box-shadow:inset 1px 0 0 var(--rule);
-    font-family:var(--mono);font-size:0.9rem;color:var(--dim);
+    font-family:var(--mono);font-size:0.82rem;color:var(--dim);
   }
   .seg button:first-child{box-shadow:none}
-  .seg button:hover{background:var(--wash)}
+  .seg button:hover:not(:disabled){background:var(--wash)}
   .seg button:active{transform:none}
   .seg button[aria-pressed="true"],
   .seg button[aria-pressed="true"]:hover{background:var(--uv);color:var(--on-uv);box-shadow:none}
   .seg button[aria-pressed="true"] + button{box-shadow:none}
-  /* inset so the connected strip does not clip the ring */
+  /* inset, so the connected strip does not clip the ring */
   .seg button:focus-visible{box-shadow:none;outline:2px solid var(--uv);outline-offset:-2px}
 
-  /* references */
+  /* ---------- references ---------- */
   .drop{
     display:flex;align-items:center;justify-content:center;
-    padding:15px 14px;
+    padding:14px;
     border:1px dashed var(--rule-2);border-radius:var(--r-sm);
     background:var(--cell);
-    font-family:var(--mono);font-size:0.76rem;letter-spacing:0.02em;color:var(--dim);text-align:center;
+    font-family:var(--mono);font-size:0.74rem;color:var(--dim);text-align:center;
     cursor:pointer;
     transition:border-color .12s var(--ease-smooth),background-color .12s var(--ease-smooth),color .12s var(--ease-smooth);
   }
@@ -293,12 +322,12 @@
   .drop.over{border-color:var(--uv);background:var(--uv-wash);color:var(--text)}
   .drop:focus-visible{outline:none;border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
   .drop.full{cursor:not-allowed;opacity:.5}
-  .count-tag{float:right;font-family:var(--mono);font-size:0.68rem;color:var(--faint);letter-spacing:0.06em}
-  .thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .thumbs{display:flex;flex-wrap:wrap;gap:var(--s1);margin-top:var(--s2)}
+  .thumbs:empty{display:none}
   .thumb{
     position:relative;width:56px;height:56px;
     border:1px solid var(--rule);border-radius:var(--r-sm);overflow:hidden;
-    animation:pop .22s var(--ease) both;
+    animation:pop .2s var(--ease) both;
   }
   .thumb img{width:100%;height:100%;display:block;object-fit:cover}
   .thumb button{
@@ -307,78 +336,57 @@
     font-size:0.72rem;line-height:1;color:var(--text);
   }
   .thumb button:hover{background:var(--red);border-color:var(--red);color:var(--on-uv)}
-  @media (pointer:coarse){
-    .thumb{width:68px;height:68px}
-    .thumb button{width:25px;height:25px;font-size:0.85rem}
-    /* fingers need more than a text-sized target */
-    .btn-ghost{padding:10px 13px}
-    .disclosure summary{padding:8px 0}
-    .theme-toggle{width:40px;height:40px}
-    .drop{padding:19px 14px}
-    /* the model rows and the count strip land at 37 and 38px on a phone,
-       just under a comfortable target */
-    .pills button{padding:12px}
-    .seg button{padding:13px 0}
-  }
 
-  /* custom size validity */
-  .valid{margin-top:var(--s2);font-family:var(--mono);font-size:0.7rem;line-height:1.5;color:var(--red)}
-  .valid.ok{color:var(--faint)}
-  .custom-size{margin-top:var(--s3)}
+  /* ---------- run ---------- */
+  .run{margin-top:var(--s5)}
+  .btn-primary,.btn-cancel{
+    width:100%;padding:13px;
+    font-family:var(--mono);font-weight:500;font-size:0.82rem;
+    letter-spacing:0.2em;text-transform:uppercase;
+  }
+  .btn-primary{border-color:var(--uv);background:var(--uv);color:var(--on-uv)}
+  .btn-primary:hover:not(:disabled){background:var(--uv-hi);border-color:var(--uv-hi)}
+  .btn-cancel{border-color:var(--red-line);background:transparent;color:var(--red)}
+  .btn-cancel:hover:not(:disabled){background:var(--red-wash);border-color:var(--red)}
 
-  /* actions */
-  .actions{
-    position:sticky;bottom:0;z-index:2;
-    margin-inline:calc(var(--pad) * -1);
-    padding:var(--s4) var(--pad) calc(var(--s4) + env(safe-area-inset-bottom));
-    background:var(--sheet);
-    border-top:1px solid var(--rule);
-  }
-  .btn-primary{
-    width:100%;padding:14px;
-    border-color:var(--uv);background:var(--uv);
-    font-family:var(--mono);font-weight:500;font-size:0.86rem;
-    letter-spacing:0.2em;text-transform:uppercase;color:var(--on-uv);
-  }
-  .btn-primary:hover{background:var(--uv-hi);border-color:var(--uv-hi)}
-  .btn-cancel{
-    width:100%;padding:14px;
-    border-color:var(--red);background:transparent;
-    font-family:var(--mono);font-size:0.86rem;
-    letter-spacing:0.2em;text-transform:uppercase;color:var(--red);
-  }
-  .btn-cancel:hover{background:var(--red-wash);border-color:var(--red)}
-
-  /* status */
+  /* ---------- status ---------- */
   .status{margin-top:var(--s3);font-size:0.84rem}
   .status.work{color:var(--dim)}
-  .status .work-row{display:flex;align-items:center;gap:var(--s2)}
-  .track{height:2px;margin-top:10px;background:var(--wash-2);overflow:hidden}
+  .work-row{display:flex;align-items:center;gap:var(--s2)}
+  .work-row .label{flex:1 1 auto;min-width:0}
+  /* the figure that moves. without it a busy state is indistinguishable
+     from a crash, so every waiting branch writes to this. */
+  .work-row .tick{flex:none;font-family:var(--mono);font-size:0.74rem;color:var(--faint);font-variant-numeric:tabular-nums}
+  .track{height:2px;margin-top:var(--s2);background:var(--wash-2);overflow:hidden}
   .track i{display:block;height:100%;background:var(--uv);transition:width .3s var(--ease)}
   .spin{
-    width:12px;height:12px;flex:none;
+    width:11px;height:11px;flex:none;
     border:2px solid var(--wash-2);border-top-color:var(--uv);border-radius:50%;
     animation:spin .7s linear infinite;
   }
-  /* a marked-up note in the margin, not a boxed alert */
+  /* a note in the margin, not a boxed alert */
   .status.err,.status.warn{
-    padding:10px 12px;border-left:2px solid;
-    animation:rise .22s var(--ease) both;
+    padding:var(--s2) var(--s3);border-left:2px solid;
+    animation:rise .2s var(--ease) both;
   }
   .status.err{border-color:var(--red);background:var(--red-wash);color:var(--red)}
   .status.warn{border-color:var(--uv-deep);background:var(--wash);color:var(--dim)}
   .status .code{
-    display:block;margin-top:5px;
-    font-family:var(--mono);font-size:0.7rem;line-height:1.5;color:var(--faint);
+    display:block;margin-top:var(--s1);
+    font-family:var(--mono);font-size:0.68rem;line-height:1.5;color:var(--faint);
     word-break:break-word;
   }
 
-  /* api key disclosure */
-  .disclosure{margin-top:var(--s4);border-top:1px solid var(--rule);padding-top:var(--s4)}
+  /* ---------- custom size ---------- */
+  .valid{margin:var(--s2) 0 0;font-family:var(--mono);font-size:0.68rem;line-height:1.5;color:var(--red)}
+  .valid.ok{color:var(--faint)}
+
+  /* ---------- api key ---------- */
+  .disclosure{margin-top:var(--s5);border-top:1px solid var(--rule);padding-top:var(--s4)}
   .disclosure summary{
     display:flex;align-items:center;gap:var(--s2);
     list-style:none;cursor:pointer;
-    font-family:var(--mono);font-size:0.68rem;
+    font-family:var(--mono);font-size:0.66rem;font-weight:500;
     letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);
   }
   .disclosure summary:hover{color:var(--dim)}
@@ -392,76 +400,59 @@
   .disclosure summary:focus-visible{outline:none;color:var(--uv)}
   .disclosure-body{margin-top:var(--s3)}
   .key-row{display:flex;gap:var(--s2)}
-  .key-row input{flex:1;min-width:0}
-  .key-row button{flex:none}
-  .note{margin:var(--s3) 0 0;font-size:0.73rem;line-height:1.55;color:var(--faint)}
+  .key-row input{flex:1 1 auto;min-width:0}
+  .note{margin:var(--s3) 0 0;font-size:0.72rem;line-height:1.55;color:var(--faint)}
 
-  /* ---------- canvas ---------- */
-  .canvas-head{
-    display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
-    padding-bottom:10px;margin-bottom:var(--s4);border-bottom:1px solid var(--rule);
-  }
-  .canvas-head .eyebrow{margin-bottom:0}
-
-  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s3);padding:var(--s5) 0}
-  /* signature element: an empty cell in the exact shape of what is about to be
-     exposed, held by crop marks rather than a box */
+  /* ---------- output ---------- */
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s3);padding:var(--s5) 0 var(--s6)}
+  /* an empty cell in the exact shape of what is about to arrive. it also
+     carries the busy sweep, so the wait happens where the image will land. */
   .frame{
     position:relative;
-    width:100%;max-width:calc(300px * var(--ar,1));
+    width:100%;max-width:calc(240px * var(--ar,1));
     aspect-ratio:var(--ar,1);
-    background:
-      linear-gradient(var(--mark),var(--mark)) 0    0    /10px 1px  no-repeat,
-      linear-gradient(var(--mark),var(--mark)) 0    0    /1px  10px no-repeat,
-      linear-gradient(var(--mark),var(--mark)) 100% 0    /10px 1px  no-repeat,
-      linear-gradient(var(--mark),var(--mark)) 100% 0    /1px  10px no-repeat,
-      linear-gradient(var(--mark),var(--mark)) 0    100% /10px 1px  no-repeat,
-      linear-gradient(var(--mark),var(--mark)) 0    100% /1px  10px no-repeat,
-      linear-gradient(var(--mark),var(--mark)) 100% 100% /10px 1px  no-repeat,
-      linear-gradient(var(--mark),var(--mark)) 100% 100% /1px  10px no-repeat,
-      var(--cell);
+    border:1px solid var(--rule-2);
+    background:var(--cell);
     overflow:hidden;
     transition:max-width .35s var(--ease),aspect-ratio .35s var(--ease);
   }
-  /* the label sits under the cell, not inside it. a 1:8 frame is 38px wide and
-     was clipping its own caption. */
-  .frame-label{font-size:0.72rem;letter-spacing:0.08em;color:var(--dim)}
   .frame.busy::after{
     content:"";position:absolute;inset:0;
     background:linear-gradient(100deg,transparent 20%,var(--uv-wash) 50%,transparent 80%);
     animation:sweep 1.5s linear infinite;
   }
-  .empty-text{margin:0;max-width:34ch;text-align:center;font-size:0.84rem;color:var(--faint)}
+  /* under the cell, not inside it: a 1:8 frame is 30px wide and clips its
+     own caption */
+  .frame-label{font-size:0.7rem;letter-spacing:0.08em;color:var(--dim)}
+  .empty-text{margin:0;max-width:36ch;text-align:center;font-size:0.84rem;color:var(--faint)}
 
-  .results{display:grid;gap:var(--s5)}
-  .results.multi{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))}
+  .results{display:grid;gap:var(--s6)}
+  .results.multi{grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}
   /* grid items refuse to shrink below their content without this, which lets a
      1024px image push the whole page sideways on a phone */
-  .result{min-width:0;animation:rise .34s var(--ease) both}
+  .result{min-width:0;animation:rise .3s var(--ease) both}
   .result img{
-    display:block;width:auto;max-width:100%;height:auto;max-height:78vh;margin:0 auto;
+    display:block;width:auto;max-width:100%;height:auto;max-height:80vh;margin:0 auto;
     border:1px solid var(--rule);border-radius:var(--r-sm);
     background:var(--img-backdrop);
   }
-  .result-bar{
-    display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;
-    margin-top:10px;
-  }
+  .result .row{padding-top:var(--s3)}
   /* frame number, the way a proof sheet indexes its exposures */
-  .frame-no{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.06em;color:var(--uv)}
+  .frame-no{flex:none;font-family:var(--mono);font-size:0.7rem;letter-spacing:0.06em;color:var(--uv)}
   .meta{
+    flex:0 1 auto;min-width:0;
     font-family:var(--mono);font-size:0.68rem;color:var(--faint);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
 
   @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
   @keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 
   /* a theme swap should land all at once. without this every element runs its
      own transition at its own duration and the page changes in ragged stages.
-     !important is load-bearing here: it has to beat each element's own rule. */
+     !important is load-bearing: it has to beat each element's own rule. */
   :root.theme-swap *,:root.theme-swap *::before,:root.theme-swap *::after{
     transition:none !important;
   }
@@ -470,145 +461,186 @@
     *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
   }
 
-  @media (max-width:900px){
-    .wrap{padding-top:var(--s4);padding-bottom:var(--s5)}
-    .masthead{align-items:center}
-    /* the canvas is the point on a phone, so give it the room the sticky
-       desktop column does not need */
-    .canvas{min-height:0}
-    .empty{padding:var(--s4) 0}
+  @media (pointer:coarse){
+    .thumb{width:68px;height:68px}
+    .thumb button{width:26px;height:26px;font-size:0.85rem}
+    .btn-ghost{padding:9px 12px}
+    .theme-toggle{width:40px;height:40px}
+    .drop{padding:18px 14px}
+    .disclosure summary{padding:6px 0}
+    /* these land near 37px on a phone, just under a comfortable target */
+    .pills button{padding:12px}
+    .seg button{padding:11px 0}
   }
 
-  /* narrow phones. the masthead is the only row that genuinely runs out of
-     width: wordmark plus key chip plus toggle. tighten the tracking rather
-     than wrap, so the header stays one line. */
-  @media (max-width:420px){
-    .mark-name{font-size:0.92rem;letter-spacing:0.18em}
-    .mark-sub{font-size:0.62rem;letter-spacing:0.12em}
-    .key-state{padding:6px 8px;font-size:0.65rem;gap:6px}
-    /* retuning the token keeps the panels and the action bar's bleed in step */
-    :root{--pad:12px}
-    .controls{padding-top:var(--s4)}
-    .duo{gap:var(--s2)}
-    .result-bar{gap:var(--s2)}
+  @media (max-width:640px){
+    .wrap{padding:var(--s4) max(var(--s4),env(safe-area-inset-right)) var(--s6) max(var(--s4),env(safe-area-inset-left))}
+    .topbar{margin-bottom:var(--s5)}
+    .band{gap:var(--s5);padding-bottom:var(--s5);margin-bottom:var(--s5)}
+    .prompt-field{min-height:120px}
+    .empty{padding:var(--s4) 0 var(--s5)}
+    .results{gap:var(--s5)}
+  }
+
+  /* narrow phones. the topbar is the only row that genuinely runs out of
+     width: wordmark, key chip, toggle. tighten the tracking rather than wrap,
+     so the header stays one line. */
+  @media (max-width:430px){
+    .mark-name{font-size:0.9rem;letter-spacing:0.14em}
+    .mark-sub{font-size:0.6rem;letter-spacing:0.1em}
+    .chip{padding:7px 8px;font-size:0.63rem;gap:6px}
+    .row-field{width:132px}
+    .row .lead{min-width:var(--s2)}
+  }
+
+  /* below this the longest label plus the control no longer fit on one line,
+     so the leader goes and the control takes the width */
+  @media (max-width:340px){
+    .row{flex-wrap:wrap;gap:var(--s2)}
+    .row .lead{display:none}
+    .row-field{width:100%}
+    .result .row{flex-wrap:nowrap}
+    .result .row .lead{display:block;min-width:var(--s2)}
   }
 
   /* last, so it beats any display rule of equal weight such as .empty */
-  [hidden]{display:none}
+  [hidden]{display:none !important}
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <header class="masthead">
-    <div class="mark">
+  <header class="topbar">
+    <div>
       <span class="mark-name">image<em>gen</em></span>
       <span class="mark-sub">requesty router</span>
     </div>
-    <div class="masthead-end">
-      <div class="key-state" id="keyState">
-        <span class="dot"></span><span id="keyStateText">no key</span>
-      </div>
+    <div class="topbar-end">
+      <button id="keyChip" class="chip" type="button" aria-controls="keyBox">
+        <span class="dot" aria-hidden="true"></span><span id="keyStateText">no key</span>
+      </button>
       <button id="themeToggle" class="theme-toggle" type="button" aria-label="switch to light">
         <span class="disc" aria-hidden="true"></span>
       </button>
     </div>
   </header>
 
-  <main class="grid">
-    <section class="panel controls" aria-label="controls">
-      <div class="block">
-        <span class="eyebrow">model</span>
-        <div class="pills" id="modelPills" role="group" aria-label="model"></div>
-      </div>
-
-      <div class="block">
-        <label class="eyebrow" for="prompt">prompt</label>
-        <textarea id="prompt" placeholder="describe the image"></textarea>
+  <main>
+    <div class="band">
+      <section class="compose" aria-label="prompt and references">
+        <div class="sec">
+          <label class="eyebrow" for="prompt">prompt</label>
+          <span class="lead" aria-hidden="true"></span>
+        </div>
+        <textarea id="prompt" class="prompt-field" placeholder="describe the image"></textarea>
         <p class="hint">ctrl or cmd plus enter generates</p>
-      </div>
 
-      <div class="block" id="geminiControls">
-        <div class="duo">
-          <div>
-            <label class="eyebrow" for="aspect">aspect ratio</label>
-            <select id="aspect" class="mono"></select>
+        <div class="stack">
+          <div class="sec">
+            <span class="eyebrow" id="refLabel">references</span>
+            <span class="lead" aria-hidden="true"></span>
+            <span id="refCount" class="tally"></span>
           </div>
-          <div>
-            <label class="eyebrow" for="resolution">resolution</label>
-            <select id="resolution" class="mono"></select>
-          </div>
+          <div id="drop" class="drop" tabindex="0" role="button" aria-labelledby="refLabel">tap to add, or drop images here</div>
+          <input id="fileInput" type="file" accept="image/*" multiple hidden>
+          <div id="thumbs" class="thumbs"></div>
+          <p id="refNote" class="hint" hidden></p>
         </div>
-      </div>
 
-      <div class="block" id="gptControls" hidden>
-        <div class="duo">
-          <div>
-            <label class="eyebrow" for="gptSize">size</label>
-            <select id="gptSize" class="mono"></select>
+      </section>
+
+      <div class="settings">
+        <fieldset class="params" id="paramSet">
+          <div class="sec">
+            <span class="eyebrow">model</span>
+            <span class="lead" aria-hidden="true"></span>
           </div>
-          <div>
-            <label class="eyebrow" for="gptQuality">quality</label>
-            <select id="gptQuality"></select>
-          </div>
-        </div>
-        <div id="customSize" class="custom-size" hidden>
-          <div class="duo">
-            <div>
-              <label class="eyebrow" for="customW">width px</label>
-              <input id="customW" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024" aria-describedby="sizeValid">
+          <div class="pills" id="modelPills" role="group" aria-label="model"></div>
+
+          <div class="stack">
+            <div class="sec">
+              <span class="eyebrow">settings</span>
+              <span class="lead" aria-hidden="true"></span>
             </div>
-            <div>
-              <label class="eyebrow" for="customH">height px</label>
-              <input id="customH" class="mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024" aria-describedby="sizeValid">
+
+            <div id="geminiControls">
+              <div class="row">
+                <label class="row-label" for="aspect">aspect ratio</label>
+                <span class="lead" aria-hidden="true"></span>
+                <select id="aspect" class="row-field mono"></select>
+              </div>
+              <div class="row">
+                <label class="row-label" for="resolution">resolution</label>
+                <span class="lead" aria-hidden="true"></span>
+                <select id="resolution" class="row-field mono"></select>
+              </div>
+            </div>
+
+            <div id="gptControls" hidden>
+              <div class="row">
+                <label class="row-label" for="gptSize">size</label>
+                <span class="lead" aria-hidden="true"></span>
+                <select id="gptSize" class="row-field mono"></select>
+              </div>
+              <div class="row">
+                <label class="row-label" for="gptQuality">quality</label>
+                <span class="lead" aria-hidden="true"></span>
+                <select id="gptQuality" class="row-field"></select>
+              </div>
+              <div id="customSize" hidden>
+                <div class="row">
+                  <label class="row-label" for="customW">width px</label>
+                  <span class="lead" aria-hidden="true"></span>
+                  <input id="customW" class="row-field mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024" aria-describedby="sizeValid">
+                </div>
+                <div class="row">
+                  <label class="row-label" for="customH">height px</label>
+                  <span class="lead" aria-hidden="true"></span>
+                  <input id="customH" class="row-field mono" type="number" inputmode="numeric" min="16" step="16" placeholder="1024" aria-describedby="sizeValid">
+                </div>
+                <p id="sizeValid" class="valid ok">edges multiple of 16, longest 3840 or less, ratio up to 3:1, total 0.66 to 8.29 MP</p>
+              </div>
+            </div>
+
+            <div class="row">
+              <span class="row-label" id="countLabel">images per run</span>
+              <span class="lead" aria-hidden="true"></span>
+              <div id="countGroup" class="seg row-field" role="group" aria-labelledby="countLabel">
+                <button type="button" data-count="1" aria-pressed="true">1</button>
+                <button type="button" data-count="2" aria-pressed="false">2</button>
+                <button type="button" data-count="3" aria-pressed="false">3</button>
+                <button type="button" data-count="4" aria-pressed="false">4</button>
+              </div>
             </div>
           </div>
-          <p id="sizeValid" class="valid ok">edges multiple of 16, longest 3840 or less, ratio up to 3:1, total 0.66 to 8.29 MP</p>
-        </div>
+        </fieldset>
+
+        <details class="disclosure" id="keyBox">
+          <summary>api key</summary>
+          <div class="disclosure-body">
+            <div class="key-row">
+              <input id="apiKey" class="mono" type="password" placeholder="requesty api key" autocomplete="off" spellcheck="false">
+              <button id="keyToggle" class="btn-ghost" type="button">show</button>
+            </div>
+            <p class="note">
+              everything runs in this browser. the key is saved to this device only and never leaves it except in the request to requesty.
+              downloads are the exact png bytes the api returns, with no re-encoding.
+            </p>
+          </div>
+        </details>
       </div>
 
-      <div class="block">
-        <span class="eyebrow">references <span id="refCount" class="count-tag"></span></span>
-        <div id="drop" class="drop" tabindex="0" role="button" aria-label="add reference images">tap to add, or drop images here</div>
-        <input id="fileInput" type="file" accept="image/*" multiple hidden>
-        <div id="thumbs" class="thumbs"></div>
-        <p id="refNote" class="hint" hidden></p>
-      </div>
-
-      <div class="block">
-        <span class="eyebrow">images per run</span>
-        <div id="countGroup" class="seg" role="group" aria-label="number of images">
-          <button type="button" data-count="1" aria-pressed="true">1</button>
-          <button type="button" data-count="2" aria-pressed="false">2</button>
-          <button type="button" data-count="3" aria-pressed="false">3</button>
-          <button type="button" data-count="4" aria-pressed="false">4</button>
-        </div>
-      </div>
-
-      <div class="actions">
+      <div class="run">
         <button id="generate" class="btn-primary" type="button">generate</button>
         <button id="cancel" class="btn-cancel" type="button" hidden>cancel</button>
         <div id="status" class="status" role="status" aria-live="polite" hidden></div>
       </div>
+    </div>
 
-      <details class="disclosure" id="keyBox">
-        <summary>api key</summary>
-        <div class="disclosure-body">
-          <div class="key-row">
-            <input id="apiKey" class="mono" type="password" placeholder="requesty api key" autocomplete="off" spellcheck="false">
-            <button id="keyToggle" class="btn-ghost" type="button">show</button>
-          </div>
-          <p class="note">
-            everything runs in this browser. the key is saved to this device only and never leaves it except in the request to requesty.
-            downloads are the exact png bytes the api returns, with no re-encoding.
-          </p>
-        </div>
-      </details>
-    </section>
-
-    <section class="panel canvas" aria-label="output">
-      <div class="canvas-head">
+    <section aria-label="output">
+      <div class="sec">
         <span class="eyebrow">output</span>
+        <span class="lead" aria-hidden="true"></span>
         <button id="downloadAll" class="btn-ghost" type="button" hidden>download all</button>
       </div>
       <div id="canvasEmpty" class="empty">
@@ -660,14 +692,17 @@ const MODELS = {
 const BASE = "https://router.requesty.ai/v1";
 const KEY_STORE = "requesty_image_key";
 const THEME_STORE = "requesty_image_theme";   // also read by the pre-paint script in <head>
-const MAX_PARALLEL = 2;   // more than this and the router starts handing back 429s
+const MAX_PARALLEL = 2;            // more than this and the router starts handing back 429s
+const MAX_ATTEMPTS = 3;            // per image, retryable failures only
+const REQUEST_TIMEOUT_MS = 300000; // a 4K image can take minutes; past this the socket is dead
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
 
 /* ----- elements ----- */
 const $ = id => document.getElementById(id);
 const els = {
-  key: $("apiKey"), keyToggle: $("keyToggle"), keyState: $("keyState"), keyStateText: $("keyStateText"),
+  key: $("apiKey"), keyToggle: $("keyToggle"), keyChip: $("keyChip"), keyStateText: $("keyStateText"),
   themeToggle: $("themeToggle"),
-  modelPills: $("modelPills"),
+  paramSet: $("paramSet"), modelPills: $("modelPills"),
   geminiControls: $("geminiControls"), aspect: $("aspect"), resolution: $("resolution"),
   gptControls: $("gptControls"), gptSize: $("gptSize"), gptQuality: $("gptQuality"),
   customSize: $("customSize"), customW: $("customW"), customH: $("customH"), sizeValid: $("sizeValid"),
@@ -686,7 +721,7 @@ let refs = [];            // [{ dataUrl, name }]
 let count = 1;            // images per run
 let controller = null;    // AbortController for the active run
 let running = false;      // guards against a second run starting on top of the first
-let results = [];         // data urls currently on screen
+let results = [];         // images currently on screen
 
 const currentModel = () => MODELS[modelKey];
 
@@ -712,7 +747,7 @@ els.themeToggle.addEventListener("click", () => {
 /* ----- api key ----- */
 function syncKeyState() {
   const has = els.key.value.trim().length > 0;
-  els.keyState.classList.toggle("live", has);
+  els.keyChip.classList.toggle("live", has);
   els.keyStateText.textContent = has ? "key saved" : "no key";
 }
 try { const saved = localStorage.getItem(KEY_STORE); if (saved) els.key.value = saved; } catch (_) {}
@@ -726,6 +761,17 @@ els.keyToggle.addEventListener("click", () => {
   els.keyToggle.textContent = hidden ? "hide" : "show";
 });
 
+/* the chip reports the key state, so it opens the panel that fixes it */
+function openKeyBox() {
+  els.keyBox.open = true;
+  els.keyBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  els.key.focus();
+}
+els.keyChip.addEventListener("click", openKeyBox);
+els.keyBox.addEventListener("toggle", () => {
+  els.keyChip.setAttribute("aria-expanded", String(els.keyBox.open));
+});
+
 /* ----- model pills ----- */
 for (const [key, m] of Object.entries(MODELS)) {
   const b = document.createElement("button");
@@ -737,7 +783,7 @@ for (const [key, m] of Object.entries(MODELS)) {
 }
 els.modelPills.addEventListener("click", e => {
   const btn = e.target.closest("button[data-model]");
-  if (!btn || btn.disabled) return;
+  if (!btn) return;
   modelKey = btn.dataset.model;
   els.modelPills.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
   syncControls();
@@ -863,9 +909,9 @@ function updatePreview() {
   els.frameLabel.textContent = label;
 }
 
-/* the preview cell is the only thing on the canvas that says what shape is
-   coming, and it doubles as the busy indicator. it belongs on screen whenever
-   there is nothing to look at yet or a run is in flight, not only on first load. */
+/* the preview cell is the only thing that says what shape is coming, and it
+   doubles as the busy indicator. it belongs on screen whenever there is
+   nothing to look at yet or a run is in flight, not only on first load. */
 function syncCanvas() {
   els.canvasEmpty.hidden = !running && results.length > 0;
 }
@@ -876,7 +922,7 @@ function noteRefs(text) {
   els.refNote.textContent = text;
   els.refNote.hidden = !text;
   clearTimeout(noteTimer);
-  if (text) noteTimer = setTimeout(() => { els.refNote.hidden = true; }, 6000);
+  if (text) noteTimer = setTimeout(() => { els.refNote.hidden = true; }, 8000);
 }
 
 function renderThumbs() {
@@ -892,7 +938,7 @@ function renderThumbs() {
 
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.textContent = "\u00d7";
+    remove.textContent = "×";
     remove.title = "remove";
     remove.setAttribute("aria-label", `remove ${r.name || "reference"}`);
     remove.addEventListener("click", () => { refs.splice(i, 1); renderThumbs(); });
@@ -924,10 +970,14 @@ async function addFiles(fileList) {
   const images = all.filter(f => f.type.startsWith("image/"));
   const skippedType = all.length - images.length;
   let skippedRoom = 0;
+  let tooBig = 0;
   let failed = 0;
 
   for (const file of images) {
     if (refs.length >= m.maxRefs) { skippedRoom++; continue; }
+    // base64 adds a third again on top of this, and the router answers an
+    // oversized body with a bare 413 that says nothing about which file
+    if (file.size > MAX_FILE_BYTES) { tooBig++; continue; }
     try { refs.push({ dataUrl: await readFile(file), name: file.name }); }
     catch (_) { failed++; }
   }
@@ -936,12 +986,13 @@ async function addFiles(fileList) {
   const problems = [];
   if (skippedType) problems.push(`${skippedType} not an image`);
   if (skippedRoom) problems.push(`${skippedRoom} over the ${m.maxRefs} limit`);
+  if (tooBig) problems.push(`${tooBig} over ${Math.round(MAX_FILE_BYTES / 1024 / 1024)} MB`);
   if (failed) problems.push(`${failed} failed to read`);
   noteRefs(problems.length ? `skipped: ${problems.join(", ")}` : "");
 }
 
 els.drop.addEventListener("click", () => {
-  if (refs.length >= currentModel().maxRefs) return;
+  if (running || refs.length >= currentModel().maxRefs) return;
   els.fileInput.click();
 });
 els.drop.addEventListener("keydown", e => {
@@ -952,10 +1003,24 @@ els.fileInput.addEventListener("change", e => { addFiles(e.target.files); els.fi
   els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.add("over"); }));
 ["dragleave","drop"].forEach(ev =>
   els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.remove("over"); }));
-els.drop.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+els.drop.addEventListener("drop", e => {
+  if (running) return;
+  if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+});
 
-/* ----- status ----- */
-function showWorking(done, total) {
+/* ----- status -----
+   the working state rebuilds once and then only writes text, so the spinner
+   keeps spinning and the live region is not re-announced twice a second. */
+const runStatus = { total: 1, done: 0, startedAt: 0, waitUntil: 0, waitWhy: "" };
+const work = { label: null, tick: null, fill: null, timer: null };
+
+function beginWorking(total) {
+  runStatus.total = total;
+  runStatus.done = 0;
+  runStatus.startedAt = Date.now();
+  runStatus.waitUntil = 0;
+  runStatus.waitWhy = "";
+
   els.status.hidden = false;
   els.status.className = "status work";
   els.status.textContent = "";
@@ -964,22 +1029,55 @@ function showWorking(done, total) {
   row.className = "work-row";
   const spinner = document.createElement("span");
   spinner.className = "spin";
-  const label = total > 1
-    ? `generating, ${done} of ${total} done`
-    : "generating, high resolution takes a while";
-  row.append(spinner, document.createTextNode(label));
+  spinner.setAttribute("aria-hidden", "true");
+  work.label = document.createElement("span");
+  work.label.className = "label";
+  // the seconds change twice a second. inside the live region that is a
+  // screen reader reading the same line forever, so it is hidden from it.
+  work.tick = document.createElement("span");
+  work.tick.className = "tick";
+  work.tick.setAttribute("aria-hidden", "true");
+  row.append(spinner, work.label, work.tick);
 
   const track = document.createElement("div");
   track.className = "track";
-  const fill = document.createElement("i");
-  fill.style.width = `${total ? (done / total) * 100 : 0}%`;
-  track.appendChild(fill);
+  work.fill = document.createElement("i");
+  track.appendChild(work.fill);
 
   els.status.append(row, track);
-  els.emptyText.textContent = label;
+  renderWorking();
+  clearInterval(work.timer);
+  work.timer = setInterval(renderWorking, 500);
+}
+
+function renderWorking() {
+  if (!work.label) return;
+  const now = Date.now();
+  const waiting = runStatus.waitUntil > now;
+
+  const label = waiting
+    ? `${runStatus.waitWhy}, retrying`
+    : runStatus.total > 1
+      ? `generating, ${runStatus.done} of ${runStatus.total} done`
+      : "generating";
+  const tick = waiting
+    ? `${Math.ceil((runStatus.waitUntil - now) / 1000)}s`
+    : `${Math.round((now - runStatus.startedAt) / 1000)}s`;
+
+  if (work.label.textContent !== label) work.label.textContent = label;
+  work.tick.textContent = tick;
+  work.fill.style.width = `${runStatus.total ? (runStatus.done / runStatus.total) * 100 : 0}%`;
+  els.emptyText.textContent = `${label}, ${tick}`;
+}
+
+function stopWorking() {
+  clearInterval(work.timer);
+  work.timer = null;
+  work.label = work.tick = work.fill = null;
 }
 
 function showMessage(kind, message, code) {
+  stopWorking();
   els.status.hidden = false;
   els.status.className = `status ${kind}`;
   els.status.textContent = message;
@@ -992,47 +1090,87 @@ function showMessage(kind, message, code) {
 }
 const showError = (message, code) => showMessage("err", message, code);
 const showWarn = (message, code) => showMessage("warn", message, code);
-function clearStatus() { els.status.hidden = true; els.status.textContent = ""; }
+function clearStatus() { stopWorking(); els.status.hidden = true; els.status.textContent = ""; }
 
-/* ----- failure messages ----- */
+/* ----- failures -----
+   status meanings and retry advice follow the requesty error code reference.
+   the message the router sends back is usually the more specific of the two,
+   so it leads, and the line below carries the status, the origin, and this. */
 const STATUS_HINT = {
-  400: "the router rejected the request, check the size and quality values",
-  401: "no api key was sent, paste your requesty key below",
-  402: "requesty balance exhausted, top up your account",
-  403: "key invalid, expired, or the model is blocked by your access policy",
-  404: "model not found, the id may have been renamed or retired on requesty",
-  412: "monthly spend limit reached for this key",
-  413: "the request is too large, drop a few reference images and retry",
-  429: "rate limited, wait a moment and try again",
-  500: "router or provider error, try again",
-  502: "provider is down, try again shortly",
-  503: "provider timed out, try again",
-  529: "provider overloaded, try again shortly"
+  400: "the router rejected the request, check the size, quality, and prompt",
+  401: "no api key was sent, paste your requesty key and try again",
+  402: "your requesty balance is empty, top up at app.requesty.ai",
+  403: "the key is invalid or expired, or the model is not on your access list",
+  404: "requesty has no such model id, it may have been renamed or retired",
+  408: "the request timed out before the provider answered",
+  412: "the monthly spend limit for this key has been reached",
+  413: "the request is too large, remove a few reference images",
+  422: "the routing policy has no usable model, check your access list or byok keys",
+  424: "the provider sent something requesty could not read, usually transient",
+  429: "rate limited, wait a moment or drop the images per run",
+  500: "requesty hit an internal error",
+  502: "the provider is down",
+  503: "the provider timed out",
+  529: "the provider is overloaded"
 };
 
+/* what the docs mark as worth another attempt. 400 through 412 are the
+   caller's problem and retrying them only spends time. */
+const RETRY_STATUS = new Set([408, 409, 424, 425, 429, 500, 502, 503, 504, 522, 524, 529]);
+
+function apiError(message, code, status, retryable) {
+  const err = new Error(message);
+  err.code = code || "";
+  err.status = status || 0;
+  err.retryable = !!retryable;
+  return err;
+}
+
+function abortError() {
+  const err = new Error("cancelled");
+  err.name = "AbortError";
+  return err;
+}
+
 async function parseError(resp) {
+  let raw = "";
+  try { raw = await resp.text(); } catch (_) {}
+
   let origin = "";
+  let type = "";
   let message = "";
   try {
-    const body = await resp.json();
-    origin = (body && body.error && body.error.origin) || "";
-    message = (body && body.error && body.error.message) || "";
-  } catch (_) {}
+    const body = JSON.parse(raw);
+    const e = (body && body.error) || {};
+    origin = typeof e.origin === "string" ? e.origin : "";
+    type = typeof e.type === "string" ? e.type : (e.code != null ? String(e.code) : "");
+    message = typeof e.message === "string" ? e.message : "";
+  } catch (_) {
+    // not json. a gateway or a proxy in front of the router answers in html,
+    // and throwing that away leaves the person with a bare status code.
+    message = raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
+  }
 
-  const hint = STATUS_HINT[resp.status] || "request failed";
-  const parts = [`HTTP ${resp.status}`];
-  if (origin) parts.push(origin);
-  if (message) parts.push(hint);
-  return { friendly: message || hint, code: parts.join(" \u00b7 ") };
+  const hint = STATUS_HINT[resp.status] || "the request failed";
+  const code = [`HTTP ${resp.status}`, origin, type, message ? hint : ""].filter(Boolean).join(" · ");
+  return { friendly: message || hint, code, retryable: RETRY_STATUS.has(resp.status) };
+}
+
+/* the router asks callers to respect this on a 429 */
+function retryAfterMs(resp) {
+  const raw = resp.headers.get("retry-after");
+  if (!raw) return null;
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const when = Date.parse(raw);
+  return Number.isFinite(when) ? Math.max(0, when - Date.now()) : null;
 }
 
 function networkError(err) {
   const raw = String((err && err.message) || err);
   const looksLikeNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw);
   if (!looksLikeNetwork) return null;
-  const e = new Error("the request never reached requesty. check your connection, then try again.");
-  e.code = raw;
-  return e;
+  return apiError("the request never reached requesty, check your connection", raw, 0, true);
 }
 
 /* ----- request building. shapes match the requesty docs, do not change lightly ----- */
@@ -1098,39 +1236,113 @@ function extractImages(m, json) {
   return out;
 }
 
-/* ----- one request ----- */
-async function requestImages(m, url, body, key, signal) {
-  let resp;
+/* ----- one attempt ----- */
+async function sendOnce(m, url, body, key, signal) {
+  if (signal.aborted) throw abortError();
+
+  // a run can be cancelled, and a socket can also go quiet forever with no
+  // error of its own. both end in the same abort, so a flag tells them apart.
+  const ctl = new AbortController();
+  let timedOut = false;
+  const onAbort = () => ctl.abort();
+  signal.addEventListener("abort", onAbort, { once: true });
+  const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, REQUEST_TIMEOUT_MS);
+  const timeout = () => apiError(
+    `no answer in ${Math.round(REQUEST_TIMEOUT_MS / 1000)}s, the request was dropped`,
+    "client timeout", 0, true);
+
   try {
-    resp = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-      body: JSON.stringify(body),
-      signal
-    });
-  } catch (err) {
-    if (err && err.name === "AbortError") throw err;
-    throw networkError(err) || err;
-  }
+    let resp;
+    try {
+      resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+        body: JSON.stringify(body),
+        signal: ctl.signal
+      });
+    } catch (err) {
+      if (signal.aborted) throw abortError();
+      if (timedOut) throw timeout();
+      throw networkError(err) || err;
+    }
 
-  if (!resp.ok) {
-    const { friendly, code } = await parseError(resp);
-    const err = new Error(friendly);
-    err.code = code;
-    throw err;
-  }
+    if (!resp.ok) {
+      const { friendly, code, retryable } = await parseError(resp);
+      const err = apiError(friendly, code, resp.status, retryable);
+      const after = retryAfterMs(resp);
+      if (after !== null) err.retryAfterMs = after;
+      throw err;
+    }
 
-  const json = await resp.json();
-  const urls = extractImages(m, json);
-  if (!urls.length) {
-    const textBack = json && json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
-    const err = new Error(textBack
-      ? "no image came back, the model replied with text instead"
-      : "no image came back");
-    err.code = typeof textBack === "string" ? textBack.slice(0, 240) : "";
-    throw err;
+    let json;
+    try {
+      json = await resp.json();
+    } catch (err) {
+      if (signal.aborted) throw abortError();
+      if (timedOut) throw timeout();
+      throw apiError("requesty answered with something that is not json",
+        `HTTP ${resp.status} · unreadable body`, resp.status, true);
+    }
+
+    const urls = extractImages(m, json);
+    if (!urls.length) {
+      // a model that answers in words has usually declined the prompt, and
+      // asking again costs money to be declined again. not retried.
+      const textBack = json && json.choices && json.choices[0] && json.choices[0].message
+        && json.choices[0].message.content;
+      const err = apiError(
+        typeof textBack === "string" && textBack.trim()
+          ? "no image came back, the model replied with text instead"
+          : "no image came back",
+        typeof textBack === "string" ? textBack.slice(0, 240) : "", resp.status, false);
+      throw err;
+    }
+    return urls;
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener("abort", onAbort);
   }
-  return urls;
+}
+
+function wait(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) { reject(abortError()); return; }
+    const onAbort = () => { clearTimeout(timer); reject(abortError()); };
+    const timer = setTimeout(() => { signal.removeEventListener("abort", onAbort); resolve(); }, ms);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+async function backoff(attempt, err, signal) {
+  const grown = Math.min(1500 * Math.pow(2, attempt - 1), 15000) + Math.random() * 400;
+  const ms = Math.min(err.retryAfterMs != null ? err.retryAfterMs : grown, 30000);
+  runStatus.waitWhy = err.status === 429 ? "rate limited"
+    : err.status ? `provider error ${err.status}`
+    : "connection lost";
+  runStatus.waitUntil = Date.now() + ms;
+  renderWorking();
+  try { await wait(ms, signal); }
+  finally { runStatus.waitUntil = 0; renderWorking(); }
+}
+
+/* ----- one image, with the retries the docs ask for ----- */
+async function requestImages(m, url, body, key, signal) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await sendOnce(m, url, body, key, signal);
+    } catch (err) {
+      if (err && err.name === "AbortError") throw err;
+      // the docs put 500 at "retry once, then contact support"
+      const spent = attempt >= MAX_ATTEMPTS || (err && err.status === 500 && attempt >= 2);
+      if (!err || !err.retryable || spent) {
+        if (attempt > 1 && err instanceof Error) {
+          err.code = [err.code, `gave up after ${attempt} attempts`].filter(Boolean).join(" · ");
+        }
+        throw err;
+      }
+      await backoff(attempt, err, signal);
+    }
+  }
 }
 
 /* ----- results ----- */
@@ -1152,9 +1364,15 @@ function clearResults() {
 function toResult(url, m) {
   const meta = { modelId: m.id, label: m.label };
   if (!url.startsWith("data:")) return { url, ...meta };
-  const blob = dataUrlToBlob(url);
-  const objectUrl = URL.createObjectURL(blob);
-  return { url: objectUrl, objectUrl, blob, ...meta };
+  try {
+    const blob = dataUrlToBlob(url);
+    const objectUrl = URL.createObjectURL(blob);
+    return { url: objectUrl, objectUrl, blob, ...meta };
+  } catch (_) {
+    // truncated or mispadded base64 from the router. an img tag is more
+    // forgiving than atob is, so hand it the original and let it try.
+    return { url, ...meta };
+  }
 }
 
 function appendResults(urls, m) {
@@ -1172,9 +1390,15 @@ function appendResults(urls, m) {
     const img = document.createElement("img");
     img.src = result.url;
     img.alt = "generated image";
+    img.addEventListener("error", () => {
+      img.replaceWith(Object.assign(document.createElement("p"), {
+        className: "empty-text",
+        textContent: "this image came back damaged and will not display"
+      }));
+    });
 
     const bar = document.createElement("div");
-    bar.className = "result-bar";
+    bar.className = "row";
     const no = document.createElement("span");
     no.className = "frame-no";
     no.textContent = String(index + 1).padStart(2, "0");
@@ -1182,12 +1406,15 @@ function appendResults(urls, m) {
     meta.className = "meta";
     meta.textContent = m.label;
     meta.title = m.id;
+    const lead = document.createElement("span");
+    lead.className = "lead";
+    lead.setAttribute("aria-hidden", "true");
     const download = document.createElement("button");
     download.type = "button";
     download.className = "btn-ghost";
     download.textContent = "download png";
     download.addEventListener("click", () => downloadImage(results[index], index));
-    bar.append(no, meta, download);
+    bar.append(no, meta, lead, download);
 
     card.append(img, bar);
     els.output.appendChild(card);
@@ -1196,8 +1423,8 @@ function appendResults(urls, m) {
   els.downloadAll.hidden = results.length < 2;
   syncCanvas();
 
-  // on the stacked layout the output sits below the controls, so bring it into view once
-  if (firstOfRun && window.matchMedia("(max-width: 900px)").matches) {
+  // on the stacked layout the output sits below the band, so bring it into view once
+  if (firstOfRun && window.matchMedia("(max-width: 860px)").matches) {
     els.output.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
@@ -1207,6 +1434,7 @@ function appendResults(urls, m) {
    a sliced string in v8, and holding one keeps the entire base64 payload alive. */
 function dataUrlToBlob(dataUrl) {
   const comma = dataUrl.indexOf(",");
+  if (comma < 0) throw new Error("not a data url");
   const mime = dataUrl.startsWith("data:image/jpeg") ? "image/jpeg"
     : dataUrl.startsWith("data:image/webp") ? "image/webp"
     : "image/png";
@@ -1228,6 +1456,7 @@ function triggerDownload(blob, filename) {
 }
 
 async function downloadImage(result, index) {
+  if (!result) return;
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const safeModel = result.modelId.replace(/\//g, "_");
   const name = `${safeModel}_${stamp}_${index + 1}.png`;
@@ -1235,8 +1464,11 @@ async function downloadImage(result, index) {
   if (result.blob) { triggerDownload(result.blob, name); return; }
   try {
     const resp = await fetch(result.url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     triggerDownload(await resp.blob(), name);
   } catch (_) {
+    // the bytes are on screen but not reachable as a blob, so hand the
+    // browser the url and let its own save do the work
     window.open(result.url, "_blank", "noopener");
   }
 }
@@ -1260,10 +1492,13 @@ els.downloadAll.addEventListener("click", async () => {
 let cancelArmTimer = null;
 
 function setGenerating(on) {
+  running = on;
   els.generate.hidden = on;
   els.cancel.hidden = !on;
   els.frame.classList.toggle("busy", on);
-  els.modelPills.querySelectorAll("button").forEach(b => { b.disabled = on; });
+  // one flag locks the model and every setting, so the shape preview and the
+  // body already in flight cannot disagree about what is being made
+  els.paramSet.disabled = on;
   if (!on) els.emptyText.textContent = EMPTY_TEXT;
   syncCanvas();
 
@@ -1301,8 +1536,7 @@ async function generate() {
 
   if (!key) {
     showError("paste your requesty api key first.");
-    els.keyBox.open = true;
-    els.key.focus();
+    openKeyBox();
     return;
   }
   if (!prompt) { showError("write a prompt first."); els.prompt.focus(); return; }
@@ -1311,26 +1545,31 @@ async function generate() {
     if (sizeErr) { showError("fix the custom size, " + sizeErr); return; }
   }
 
-  const { url, body } = buildRequest(m, prompt);
+  let request;
+  try {
+    request = buildRequest(m, prompt);
+  } catch (err) {
+    showError("could not build the request", String((err && err.message) || err));
+    return;
+  }
+
   const total = count;
-  let done = 0;
   let produced = 0;
 
-  running = true;
   controller = new AbortController();
   const signal = controller.signal;
   pendingClear = true;
   setGenerating(true);
-  showWorking(0, total);
+  beginWorking(total);
 
   try {
     const errors = await runPool(total, MAX_PARALLEL, async () => {
-      const urls = await requestImages(m, url, body, key, signal);
+      const urls = await requestImages(m, request.url, request.body, key, signal);
       if (signal.aborted) return;
       appendResults(urls, m);
       produced += urls.length;
-      done++;
-      showWorking(done, total);
+      runStatus.done++;
+      renderWorking();
     }, signal);
 
     if (signal.aborted) {
@@ -1340,17 +1579,23 @@ async function generate() {
     }
 
     if (!produced) {
-      const first = errors[0] || new Error("request failed");
+      const first = errors[0] || apiError("the request failed", "", 0, false);
       showError(first.message, first.code || "");
+      // the panel that fixes a credential problem is the one to open
+      if (first.status === 401 || first.status === 403) openKeyBox();
       return;
     }
     if (errors.length) {
-      showWarn(`${errors.length} of ${total} failed, showing the ${produced} that worked`, errors[0].message);
+      showWarn(`${errors.length} of ${total} failed, showing the ${produced} that worked`,
+        [errors[0].message, errors[0].code].filter(Boolean).join(" · "));
       return;
     }
     clearStatus();
+  } catch (err) {
+    // runPool swallows per-task failures, so anything here is a fault in the
+    // run itself and would otherwise leave the button stuck on cancel
+    showError("the run stopped unexpectedly", String((err && err.message) || err));
   } finally {
-    running = false;
     pendingClear = false;
     setGenerating(false);
     controller = null;
@@ -1361,7 +1606,7 @@ async function generate() {
 els.generate.addEventListener("click", generate);
 els.cancel.addEventListener("click", () => { if (controller) controller.abort(); });
 els.prompt.addEventListener("keydown", e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !els.generate.disabled && els.generate.hidden === false) {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !els.generate.disabled && !els.generate.hidden) {
     e.preventDefault();
     generate();
   }
@@ -1370,6 +1615,7 @@ els.prompt.addEventListener("keydown", e => {
 /* ----- init ----- */
 setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark", false);
 els.keyBox.open = !els.key.value.trim();   // nothing saved yet, so lead with the key
+els.keyChip.setAttribute("aria-expanded", String(els.keyBox.open));
 syncKeyState();
 syncControls();
 renderThumbs();
