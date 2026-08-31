@@ -248,7 +248,10 @@
   :root[data-theme="light"] select{
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.5l4 4 4-4' fill='none' stroke='%23574d6c' stroke-width='1.3' stroke-linecap='round'/></svg>");
   }
-  :disabled{opacity:.4;cursor:not-allowed}
+  /* a locked control reads as locked. opacity on the fieldset itself would
+     wash out every label in the column along with it. */
+  input:disabled,select:disabled,textarea:disabled{opacity:.45;cursor:not-allowed}
+  .params:disabled .row-label{color:var(--faint)}
 
   /* the prompt is the headline field, so it is set larger than anything else
      and given the room to hold a paragraph without scrolling */
@@ -268,7 +271,7 @@
   button:hover:not(:disabled){background:var(--hover);border-color:var(--rule-2)}
   button:active:not(:disabled){transform:translateY(1px)}
   button:focus-visible{outline:none;border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
-  button:disabled{transform:none}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
   .btn-ghost{
     flex:none;padding:5px 9px;background:transparent;
     font-family:var(--mono);font-size:0.66rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);
@@ -321,7 +324,8 @@
   .drop:hover{border-color:var(--uv-deep);color:var(--text)}
   .drop.over{border-color:var(--uv);background:var(--uv-wash);color:var(--text)}
   .drop:focus-visible{outline:none;border-color:var(--uv);box-shadow:0 0 0 2px var(--uv-ring)}
-  .drop.full{cursor:not-allowed;opacity:.5}
+  .drop.full,.drop.locked{cursor:not-allowed;opacity:.5}
+  .drop.locked{border-style:solid}
   .thumbs{display:flex;flex-wrap:wrap;gap:var(--s1);margin-top:var(--s2)}
   .thumbs:empty{display:none}
   .thumb{
@@ -397,7 +401,8 @@
     transform:rotate(-45deg);transition:transform .18s var(--ease);
   }
   .disclosure[open] summary::before{transform:rotate(45deg)}
-  .disclosure summary:focus-visible{outline:none;color:var(--uv)}
+  /* a colour shift alone is not a focus indicator, it needs a shape */
+  .disclosure summary:focus-visible{outline:2px solid var(--uv);outline-offset:3px;color:var(--dim)}
   .disclosure-body{margin-top:var(--s3)}
   .key-row{display:flex;gap:var(--s2)}
   .key-row input{flex:1 1 auto;min-width:0}
@@ -733,8 +738,11 @@ function setTheme(next, remember) {
   const root = document.documentElement;
   if (remember) {
     root.classList.add("theme-swap");
-    // two frames: one for the swap to paint with transitions off, one to restore
-    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theme-swap")));
+    // two frames: one for the swap to paint with transitions off, one to restore.
+    // a backgrounded tab never runs them, so a timer clears it either way.
+    const clear = () => root.classList.remove("theme-swap");
+    requestAnimationFrame(() => requestAnimationFrame(clear));
+    setTimeout(clear, 250);
   }
   root.dataset.theme = next;
   els.themeToggle.setAttribute("aria-label", next === "light" ? "switch to dark" : "switch to light");
@@ -864,25 +872,24 @@ function customSizeError() {
   return null;
 }
 
+/* reports the size, it does not gate the button. a disabled generate with its
+   reason in the other column is a dead end: nothing on the button says why, and
+   a person who cannot see the line has no way back. the click validates. */
 function validateCustomSize() {
   const needsCheck = currentModel().endpoint === "images" && els.gptSize.value === "custom";
-  if (!needsCheck) { setGenerateEnabled(true); return; }
+  if (!needsCheck) return;
 
   const err = customSizeError();
   if (err) {
     els.sizeValid.textContent = err;
     els.sizeValid.classList.remove("ok");
-    setGenerateEnabled(false);
     return;
   }
   const w = parseInt(els.customW.value, 10);
   const h = parseInt(els.customH.value, 10);
   els.sizeValid.textContent = `${w} x ${h} valid, ${(w * h / 1e6).toFixed(2)} MP`;
   els.sizeValid.classList.add("ok");
-  setGenerateEnabled(true);
 }
-
-function setGenerateEnabled(on) { els.generate.disabled = !on; }
 
 /* ----- the shape preview ----- */
 function previewShape() {
@@ -947,12 +954,16 @@ function renderThumbs() {
     els.thumbs.appendChild(cell);
   });
 
+  // it is a role=button, and it ignores clicks both at the limit and while a
+  // run is up. neither can be silent, so both are said and both are shown.
   const full = refs.length >= m.maxRefs;
   els.refCount.textContent = `${refs.length} / ${m.maxRefs}`;
   els.drop.classList.toggle("full", full);
-  // it is a role=button that stops responding at the limit, so say so out loud
-  els.drop.setAttribute("aria-disabled", String(full));
-  els.drop.textContent = full ? `at the limit for ${m.label}` : "tap to add, or drop images here";
+  els.drop.classList.toggle("locked", running);
+  els.drop.setAttribute("aria-disabled", String(full || running));
+  els.drop.textContent = running ? "paused while a run is up"
+    : full ? `at the limit for ${m.label}`
+    : "tap to add, or drop images here";
 }
 
 function readFile(file) {
@@ -964,9 +975,20 @@ function readFile(file) {
   });
 }
 
-async function addFiles(fileList) {
+let addingFiles = null;
+function addFiles(fileList) {
+  // reading a file yields, and a second drop landing in that gap would read a
+  // stale count and push past the limit. queue them instead.
+  const files = Array.from(fileList);
+  // a rejected link would stop every later drop, so the chain absorbs it
+  addingFiles = (addingFiles || Promise.resolve())
+    .then(() => readIntoRefs(files))
+    .catch(() => noteRefs("could not read those files"));
+  return addingFiles;
+}
+
+async function readIntoRefs(all) {
   const m = currentModel();
-  const all = Array.from(fileList);
   const images = all.filter(f => f.type.startsWith("image/"));
   const skippedType = all.length - images.length;
   let skippedRoom = 0;
@@ -1158,12 +1180,21 @@ async function parseError(resp) {
 
 /* the router asks callers to respect this on a 429 */
 function retryAfterMs(resp) {
-  const raw = resp.headers.get("retry-after");
+  const raw = (resp.headers.get("retry-after") || "").trim();
   if (!raw) return null;
-  const seconds = Number(raw);
-  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw) * 1000;
   const when = Date.parse(raw);
   return Number.isFinite(when) ? Math.max(0, when - Date.now()) : null;
+}
+
+/* an http header can only carry latin-1, so a key pasted with a smart quote or
+   a stray accent rejects inside fetch with a message about code points that
+   says nothing about the key. printable ascii covers every real requesty key. */
+function keyProblem(key) {
+  if (!/^[\x20-\x7e]+$/.test(key)) {
+    return "that key has a character that cannot be sent in a request header. retype or repaste it.";
+  }
+  return null;
 }
 
 function networkError(err) {
@@ -1493,12 +1524,14 @@ let cancelArmTimer = null;
 
 function setGenerating(on) {
   running = on;
+  if (!on) stopWorking();
   els.generate.hidden = on;
   els.cancel.hidden = !on;
   els.frame.classList.toggle("busy", on);
   // one flag locks the model and every setting, so the shape preview and the
   // body already in flight cannot disagree about what is being made
   els.paramSet.disabled = on;
+  renderThumbs();
   if (!on) els.emptyText.textContent = EMPTY_TEXT;
   syncCanvas();
 
@@ -1539,10 +1572,16 @@ async function generate() {
     openKeyBox();
     return;
   }
+  const badKey = keyProblem(key);
+  if (badKey) { showError(badKey); openKeyBox(); return; }
   if (!prompt) { showError("write a prompt first."); els.prompt.focus(); return; }
   if (m.endpoint === "images" && els.gptSize.value === "custom") {
     const sizeErr = customSizeError();
-    if (sizeErr) { showError("fix the custom size, " + sizeErr); return; }
+    if (sizeErr) {
+      showError("fix the custom size, " + sizeErr);
+      (els.customW.value ? els.customH : els.customW).focus();
+      return;
+    }
   }
 
   let request;
@@ -1559,10 +1598,10 @@ async function generate() {
   controller = new AbortController();
   const signal = controller.signal;
   pendingClear = true;
-  setGenerating(true);
-  beginWorking(total);
 
   try {
+    setGenerating(true);
+    beginWorking(total);
     const errors = await runPool(total, MAX_PARALLEL, async () => {
       const urls = await requestImages(m, request.url, request.body, key, signal);
       if (signal.aborted) return;
