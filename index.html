@@ -125,7 +125,8 @@
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
-    min-height:100dvh;
+    min-height:100vh;
+    min-height:100dvh;   /* the dvh line is dropped whole on older engines */
     background:var(--paper);
     color:var(--text);
     font-family:var(--body);
@@ -629,7 +630,7 @@
             </div>
             <p class="note">
               everything runs in this browser. the key is saved to this device only and never leaves it except in the request to requesty.
-              downloads are the exact png bytes the api returns, with no re-encoding.
+              downloads are the exact bytes the api returns, with no re-encoding.
             </p>
           </div>
         </details>
@@ -1443,7 +1444,7 @@ function appendResults(urls, m) {
     const download = document.createElement("button");
     download.type = "button";
     download.className = "btn-ghost";
-    download.textContent = "download png";
+    download.textContent = "download " + (EXTENSION[result.blob && result.blob.type] || "png");
     download.addEventListener("click", () => downloadImage(results[index], index));
     bar.append(no, meta, lead, download);
 
@@ -1460,15 +1461,22 @@ function appendResults(urls, m) {
   }
 }
 
-/* exact bytes out, no canvas, no recompression.
-   the mime comes from literals on purpose. a substring of the data url would be
-   a sliced string in v8, and holding one keeps the entire base64 payload alive. */
+/* exact bytes out, no canvas, no recompression, and the extension follows the
+   bytes. gemini answers a chat request with whatever the model produced, and a
+   jpeg saved as .png opens wrong in half the tools that read it. */
+const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/avif"];
+const EXTENSION = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif" };
+
 function dataUrlToBlob(dataUrl) {
   const comma = dataUrl.indexOf(",");
   if (comma < 0) throw new Error("not a data url");
-  const mime = dataUrl.startsWith("data:image/jpeg") ? "image/jpeg"
-    : dataUrl.startsWith("data:image/webp") ? "image/webp"
-    : "image/png";
+  // matched against whole literals rather than read out of the string. a
+  // substring of the data url would be a sliced string in v8, and holding one
+  // keeps the entire base64 payload alive behind it.
+  let mime = "image/png";
+  for (const type of IMAGE_TYPES) {
+    if (dataUrl.startsWith("data:" + type)) { mime = type; break; }
+  }
   const binary = atob(dataUrl.slice(comma + 1));
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -1488,20 +1496,22 @@ function triggerDownload(blob, filename) {
 
 async function downloadImage(result, index) {
   if (!result) return;
+  let blob = result.blob;
+  if (!blob) {
+    try {
+      const resp = await fetch(result.url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      blob = await resp.blob();
+    } catch (_) {
+      // the bytes are on screen but not reachable as a blob, so hand the
+      // browser the url and let its own save do the work
+      window.open(result.url, "_blank", "noopener");
+      return;
+    }
+  }
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const safeModel = result.modelId.replace(/\//g, "_");
-  const name = `${safeModel}_${stamp}_${index + 1}.png`;
-
-  if (result.blob) { triggerDownload(result.blob, name); return; }
-  try {
-    const resp = await fetch(result.url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    triggerDownload(await resp.blob(), name);
-  } catch (_) {
-    // the bytes are on screen but not reachable as a blob, so hand the
-    // browser the url and let its own save do the work
-    window.open(result.url, "_blank", "noopener");
-  }
+  triggerDownload(blob, `${safeModel}_${stamp}_${index + 1}.${EXTENSION[blob.type] || "png"}`);
 }
 
 /* the loop paces itself over hundreds of ms, so a second click would interleave
