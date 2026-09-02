@@ -630,7 +630,8 @@
             </div>
             <p class="note">
               everything runs in this browser. the key is saved to this device only and never leaves it except in the request to requesty.
-              downloads are the exact bytes the api returns, with no re-encoding.
+              downloads are always png. bytes that arrive as png are saved exactly as they came, and
+              anything else is re-encoded rather than renamed.
             </p>
           </div>
         </details>
@@ -1434,9 +1435,10 @@ function appendResults(urls, m) {
     const no = document.createElement("span");
     no.className = "frame-no";
     no.textContent = String(index + 1).padStart(2, "0");
+    const source = result.blob && FORMAT_NAME[result.blob.type];
     const meta = document.createElement("span");
     meta.className = "meta";
-    meta.textContent = m.label;
+    meta.textContent = source ? `${m.label} · ${source} in, png out` : m.label;
     meta.title = m.id;
     const lead = document.createElement("span");
     lead.className = "lead";
@@ -1444,8 +1446,17 @@ function appendResults(urls, m) {
     const download = document.createElement("button");
     download.type = "button";
     download.className = "btn-ghost";
-    download.textContent = "download " + (EXTENSION[result.blob && result.blob.type] || "png");
-    download.addEventListener("click", () => downloadImage(results[index], index));
+    download.textContent = "download png";
+    // encoding a 4K frame takes a moment, and a button that does nothing
+    // visible for a second reads as a button that did not work
+    download.addEventListener("click", async () => {
+      if (download.disabled) return;
+      const label = download.textContent;
+      download.disabled = true;
+      download.textContent = "saving";
+      try { await downloadImage(results[index], index); }
+      finally { download.disabled = false; download.textContent = label; }
+    });
     bar.append(no, meta, lead, download);
 
     card.append(img, bar);
@@ -1461,11 +1472,15 @@ function appendResults(urls, m) {
   }
 }
 
-/* exact bytes out, no canvas, no recompression, and the extension follows the
-   bytes. gemini answers a chat request with whatever the model produced, and a
-   jpeg saved as .png opens wrong in half the tools that read it. */
+/* every save is a png. the images endpoint is asked for png and answers in
+   png, so those bytes go out exactly as they arrived, no canvas and no
+   recompression. gemini answers a chat request with whatever the model
+   produced, and that is occasionally a jpeg, so those are decoded and encoded
+   again as png rather than renamed, which is what would actually corrupt them.
+   re-encoding a jpeg to png adds no further loss, but it does not undo the
+   loss already baked in, and the file gets a good deal larger. */
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/avif"];
-const EXTENSION = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif" };
+const FORMAT_NAME = { "image/jpeg": "jpeg", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif" };
 
 function dataUrlToBlob(dataUrl) {
   const comma = dataUrl.indexOf(",");
@@ -1483,6 +1498,33 @@ function dataUrlToBlob(dataUrl) {
   return new Blob([bytes], { type: mime });
 }
 
+function decodeImage(blob) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("the image could not be decoded")); };
+    img.src = url;
+  });
+}
+
+async function toPng(blob) {
+  if (blob.type === "image/png") return blob;
+  const img = await decodeImage(blob);
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext("2d").drawImage(img, 0, 0);
+  try {
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob(out => out ? resolve(out) : reject(new Error("the png could not be encoded")), "image/png");
+    });
+  } finally {
+    // a 4K frame holds about 33 MB of backing store until the canvas is let go
+    canvas.width = canvas.height = 0;
+  }
+}
+
 function triggerDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1495,7 +1537,7 @@ function triggerDownload(blob, filename) {
 }
 
 async function downloadImage(result, index) {
-  if (!result) return;
+  if (!result) return false;
   let blob = result.blob;
   if (!blob) {
     try {
@@ -1506,12 +1548,19 @@ async function downloadImage(result, index) {
       // the bytes are on screen but not reachable as a blob, so hand the
       // browser the url and let its own save do the work
       window.open(result.url, "_blank", "noopener");
-      return;
+      return false;
     }
+  }
+  try {
+    blob = await toPng(blob);
+  } catch (err) {
+    showError("could not convert that image to png", String((err && err.message) || err));
+    return false;
   }
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const safeModel = result.modelId.replace(/\//g, "_");
-  triggerDownload(blob, `${safeModel}_${stamp}_${index + 1}.${EXTENSION[blob.type] || "png"}`);
+  triggerDownload(blob, `${safeModel}_${stamp}_${index + 1}.png`);
+  return true;
 }
 
 /* the loop paces itself over hundreds of ms, so a second click would interleave
