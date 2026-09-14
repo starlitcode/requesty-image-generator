@@ -593,6 +593,11 @@
                 <span class="lead" aria-hidden="true"></span>
                 <select id="gptQuality" class="row-field"></select>
               </div>
+              <div class="row">
+                <label class="row-label" for="gptBackground">background</label>
+                <span class="lead" aria-hidden="true"></span>
+                <select id="gptBackground" class="row-field"></select>
+              </div>
               <div id="customSize" hidden>
                 <div class="row">
                   <label class="row-label" for="customW">width px</label>
@@ -692,6 +697,8 @@ const MODELS = {
     sizePresets: ["auto","1024x1024","1536x1024","1024x1536","2048x2048","2048x1152","3840x2160","2160x3840","custom"],
     qualities: ["auto","low","medium","high","xhigh","max"],
     defaultQuality: "medium",
+    backgrounds: ["auto","opaque","transparent"],
+    defaultBackground: "auto",
     maxRefs: 16
   },
   "gpt-image-2.5-sunburst": {
@@ -701,6 +708,8 @@ const MODELS = {
     sizePresets: ["auto","1024x1024","1536x1024","1024x1536","2048x2048","2048x1152","3840x2160","2160x3840","custom"],
     qualities: ["auto","low","medium","high","xhigh","max"],
     defaultQuality: "medium",
+    backgrounds: ["auto","opaque","transparent"],
+    defaultBackground: "auto",
     maxRefs: 16
   }
 };
@@ -721,6 +730,7 @@ const els = {
   paramSet: $("paramSet"), modelPills: $("modelPills"),
   geminiControls: $("geminiControls"), aspect: $("aspect"), resolution: $("resolution"),
   gptControls: $("gptControls"), gptSize: $("gptSize"), gptQuality: $("gptQuality"),
+  gptBackground: $("gptBackground"),
   customSize: $("customSize"), customW: $("customW"), customH: $("customH"), sizeValid: $("sizeValid"),
   prompt: $("prompt"),
   countGroup: $("countGroup"),
@@ -839,6 +849,7 @@ function syncControls() {
   if (isGpt) {
     fillSelect(els.gptSize, m.sizePresets, els.gptSize.value, "1024x1024");
     fillSelect(els.gptQuality, m.qualities, els.gptQuality.value, m.defaultQuality);
+    fillSelect(els.gptBackground, m.backgrounds, els.gptBackground.value, m.defaultBackground);
     toggleCustomSize();
   } else {
     fillSelect(els.aspect, m.aspectRatios, els.aspect.value, "1:1");
@@ -1243,6 +1254,8 @@ function buildRequest(m, prompt) {
     response_format: "b64_json",
     output_format: "png"
   };
+  // auto is what the api already does, so it only travels when it is a choice
+  if (els.gptBackground.value !== "auto") common.background = els.gptBackground.value;
   if (refs.length) {
     return {
       url: BASE + "/images/edits",
