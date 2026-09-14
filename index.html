@@ -543,11 +543,11 @@
 
         <div class="stack">
           <div class="sec">
-            <span class="eyebrow" id="refLabel">references</span>
+            <span class="eyebrow">references</span>
             <span class="lead" aria-hidden="true"></span>
             <span id="refCount" class="tally"></span>
           </div>
-          <div id="drop" class="drop" tabindex="0" role="button" aria-labelledby="refLabel">tap to add, or drop images here</div>
+          <div id="drop" class="drop" tabindex="0" role="button">tap to add, or drop images here</div>
           <input id="fileInput" type="file" accept="image/*" multiple hidden>
           <div id="thumbs" class="thumbs"></div>
           <p id="refNote" class="hint" hidden></p>
@@ -1275,6 +1275,7 @@ function extractImages(m, json) {
     }
   } else {
     for (const item of (json && json.data) || []) {
+      if (!item) continue;
       if (item.b64_json) out.push("data:image/png;base64," + item.b64_json);
       else if (item.url) out.push(item.url);
     }
