@@ -279,7 +279,7 @@
   }
   .btn-ghost:hover:not(:disabled){background:var(--wash);color:var(--text);border-color:var(--rule)}
 
-  /* model list. one row per model, ticked. three long labels do not survive
+  /* model list. one row per model, ticked. labels this long do not survive
      being squeezed side by side in a narrow column. */
   .pills{display:grid;gap:var(--s1)}
   .pills button{
@@ -685,12 +685,21 @@ const MODELS = {
     defaultResolution: "1K",
     maxRefs: 14
   },
-  "gpt-image-2": {
-    id: "azure/openai/gpt-image-2",
-    label: "GPT Image 2",
+  "gpt-image-2.5-flare": {
+    id: "openai/gpt-image-2.5-flare",
+    label: "GPT Image 2.5 Flare",
     endpoint: "images",
     sizePresets: ["auto","1024x1024","1536x1024","1024x1536","2048x2048","2048x1152","3840x2160","2160x3840","custom"],
-    qualities: ["auto","low","medium","high"],
+    qualities: ["auto","low","medium","high","xhigh","max"],
+    defaultQuality: "medium",
+    maxRefs: 16
+  },
+  "gpt-image-2.5-sunburst": {
+    id: "openai/gpt-image-2.5-sunburst",
+    label: "GPT Image 2.5 Sunburst",
+    endpoint: "images",
+    sizePresets: ["auto","1024x1024","1536x1024","1024x1536","2048x2048","2048x1152","3840x2160","2160x3840","custom"],
+    qualities: ["auto","low","medium","high","xhigh","max"],
     defaultQuality: "medium",
     maxRefs: 16
   }
